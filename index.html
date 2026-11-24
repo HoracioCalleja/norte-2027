@@ -164,6 +164,11 @@ a{color:var(--accent)}
 section.stop.away .cards,section.stop.away .ymap,section.stop.away .base{opacity:.45}
 #gbtn{display:inline-flex;color-scheme:light;border-radius:99px;overflow:hidden;height:32px;vertical-align:middle}#gbtn iframe{color-scheme:light}
 .chip.mine{background:var(--accent-soft);border-color:transparent;color:var(--accent);font-weight:600}.chip.votes{background:var(--ink);color:var(--bg);border-color:transparent;font-weight:600}.choose.vote.on{background:var(--good);border-color:var(--good);color:#fff}
+.tabs{display:flex;gap:8px;padding:6px 0 0;flex-wrap:wrap}.tab{flex:1 1 220px;border:2px solid var(--line);background:var(--surface);color:var(--ink);border-radius:18px;padding:12px 16px;font:700 16px var(--body);cursor:pointer;text-align:left;transition:transform .15s}.tab small{display:block;font-weight:500;font-size:12.5px;color:var(--muted);margin-top:2px}.tab:hover{transform:translateY(-2px)}.tab.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}.tab.on small{color:var(--accent-ink);opacity:.85}
+.tabhint{margin:10px 0 0;color:var(--muted);font-size:14.5px}
+.fbox{background:var(--surface);border-radius:20px;padding:12px 16px 14px;margin-top:14px;box-shadow:var(--shadow)}.fhead{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}.fhead b{font-family:var(--display);font-size:18px}.fhead span{color:var(--muted);font-size:13px}.fbox .presets{padding:8px 0 0}
+.rhead{margin:18px 0 0}.rhead b{font-family:var(--display);font-size:18px}.rhead span{display:block;color:var(--muted);font-size:13.5px}
+[hidden]{display:none!important}
 .vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}.vq h5{margin:0 0 5px;font:600 13px var(--body)}.vo{position:relative;display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:4px 8px;border-radius:6px;overflow:hidden;margin-top:3px;background:var(--bg)}.vo span,.vo b{position:relative;z-index:1}.vo i{position:absolute;inset:0 auto 0 0;background:var(--line)}.vo.win i{background:var(--accent-soft)}.vo.win{font-weight:600}
 details.adj{align-self:flex-end}details.adj summary{cursor:pointer;font-weight:600;font-size:13px;color:var(--muted);list-style:none;border:2px solid var(--line);border-radius:99px;padding:6px 13px;display:inline-block}details.adj[open] summary{margin-bottom:10px}
 .fixed{font-size:13px;color:var(--muted);align-self:center;max-width:26ch}
@@ -237,10 +242,10 @@ body.boot .card{animation:rise .5s both;animation-delay:calc(var(--i)*60ms)}
   <header class="top">
     <div>
       <h1>Norte 2027 <span class="wave" aria-hidden="true">🦙</span></h1>
-      <p class="sub">16 → 31 de enero. Votá dónde dormimos y mirá cuánto sale.</p>
+      <p class="sub">16 → 31 de enero. Votá dónde dormimos y calculá cuánto sale.</p>
     </div>
     <a class="pill primary" href="guia.html" style="text-decoration:none;align-self:flex-end">Qué hacer en cada lugar →</a>
-    <details class="adj"><summary>Probar con otros números</summary><p class="hid" style="margin:0 0 8px;max-width:38ch">Cambiá cuántos somos, el dólar o el tope para ver cómo quedaría. Solo cambia en tu pantalla.</p><div class="controls">
+    <details class="adj" id="adj"><summary>Probar con otros números</summary><p class="hid" style="margin:0 0 8px;max-width:38ch">Cambiá cuántos somos, el dólar o el tope para ver cómo quedaría. Solo cambia en tu pantalla.</p><div class="controls">
       <label class="field" for="n1">1ª semana<input id="n1" type="number" min="1" max="14" value="5"></label>
       <label class="field" for="n2">2ª semana<input id="n2" type="number" min="1" max="14" value="11"></label>
       <label class="field" for="usd">Dólar<input id="usd" class="wide" type="number" min="100" step="10" value="1700"></label>
@@ -249,10 +254,11 @@ body.boot .card{animation:rise .5s both;animation-delay:calc(var(--i)*60ms)}
     </div></details>
   </header>
 </div>
-<div class="balance"><div class="wrap"><div class="tiles" id="tiles"></div></div></div>
+<div class="wrap"><div class="tabs" id="tabs" role="tablist"></div><p class="tabhint" id="tabhint"></p></div>
+<div class="balance" id="balance"><div class="wrap"><div class="tiles" id="tiles"></div></div></div>
 <div class="wrap">
-  <div class="presets">
-    <span>Armar con:</span>
+  <div class="presets" id="presets">
+    <span>Armar el viaje con:</span>
     <button class="pill primary" data-preset="rec" type="button">Recomendadas</button>
     <button class="pill" data-preset="voted" type="button" id="p-voted" hidden>Lo más votado</button>
     <button class="pill" data-preset="cheap" type="button">Lo más barato</button>
@@ -260,7 +266,8 @@ body.boot .card{animation:rise .5s both;animation-delay:calc(var(--i)*60ms)}
     <button class="pill" data-preset="center" type="button">Céntrico</button>
   </div>
   <section id="votos" class="share" hidden><div style="display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center"><h3 style="font-family:var(--display);margin:0 auto 0 0;font-size:20px">Lo que votó el grupo</h3><button class="pill" id="vt-load" type="button">Actualizar votos</button><button class="pill primary" id="vt-apply" type="button">Aplicar lo más votado</button></div><p id="vt-msg" class="hid" aria-live="polite"></p><div id="vt-body" style="margin-top:8px"></div></section>
-  <div class="presets" id="filters"></div>
+  <div class="fbox"><div class="fhead"><b>Filtrá qué opciones ver</b><span id="fcount"></span></div><div class="presets" id="filters"></div></div>
+  <div class="rhead" id="rhead"></div>
   <nav class="route" id="route" aria-label="Paradas"></nav>
   <main id="stops"></main>
   <section class="stop" id="traslados">
@@ -268,7 +275,7 @@ body.boot .card{animation:rise .5s both;animation-delay:calc(var(--i)*60ms)}
     <p class="stopnote">Llegar y volver es de cada uno. Lo de allá es gasto común.</p>
     <div class="moves" id="moves"></div>
   </section>
-  <div class="share">
+  <div class="share" id="share">
     <button class="pill primary" id="copy" type="button">Copiar resumen para el grupo</button>
     <span id="copied" style="margin-left:10px;color:var(--muted);font-size:13px"></span>
     <pre id="summary"></pre>
@@ -318,13 +325,13 @@ const MOVES = [
  {id:"t7", who:0, name:"Humahuaca ↔ Iruya", note:"Ida y vuelta. Tope: 2 × la tarifa Jujuy–Iruya ($ 27.800). Comprar el día anterior.", ars:55600, src:["Todo Jujuy, tarifa desde el 1/10/2026",TJ]},
  {id:"t8", who:0, name:"Humahuaca → Jujuy y al aeropuerto", note:"Micro ($ 15.800) + colectivo al aeropuerto ($ 5.245, sin fuente)", ars:21045, src:["Todo Jujuy, tarifa desde el 1/10/2026",TJ]}
 ];
-let state = {manualN:false, applied:false, prevSel:null, sel:{}, moves:{}, alt:{}, f:{}, me:"", vid:"", myv:{}, n1:5, n2:11, usd:1700, bud:1000};
+let state = {tab:"votar", manualN:false, applied:false, prevSel:null, sel:{}, moves:{}, alt:{}, f:{}, me:"", vid:"", myv:{}, n1:5, n2:11, usd:1700, bud:1000};
 const nOf=s=>s.week1?state.n1:state.n2;
 const szOf=s=>{ const n=nOf(s); return s.week1?(n<=5?5:6):(n<=10?10:11); };
 const tot=(s,o)=>{ const v=o.t[szOf(s)]; return v==null?null:v; };
 MOVES.forEach(m=>{ if(m.id){ state.moves[m.id]=true; state.alt[m.id]=0; } });
-const KEY="norte2027j";
-try{ const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s&&s.sel){ state={...state,...s, moves:{...state.moves,...s.moves}, alt:{...state.alt,...s.alt}, f:{}, applied:false, prevSel:null}; } }catch(e){}
+const KEY="norte2027k";
+try{ const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s&&s.sel){ state={...state,...s, moves:{...state.moves,...s.moves}, alt:{...state.alt,...s.alt}, f:{}, applied:false, prevSel:null, tab:"votar"}; } }catch(e){}
 const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){} };
 const $=s=>document.querySelector(s);
 const fmt=n=>"$ "+Math.round(n).toLocaleString("es-AR");
@@ -357,19 +364,29 @@ function renderTiles(){ const t=totals(); const budA=state.bud*state.usd;
   const c=myTr(); if(c){ const me={fly:0,stay:0,move:0}; STOPS.forEach(s=>{ if(goes(s)) me.stay+=pp(s,chosen(s))||0; }); MOVES.forEach(m=>{ if(!m.id) return; const ok=c==="both"?m.who!==2:c==="w2"?m.who!==1:m.who===1; if(ok) me[m.id[0]==="f"?"fly":"move"]+=moveCost(m); }); t.me=me;
     $("#tiles").innerHTML=tile("me","Tu viaje, "+esc(state.me)+" · "+(c==="both"?"16 → 31/1":c==="w1"?"16 → 23/1":"23 → 31/1"),c==="both"?15:c==="w1"?7:8,"second",c==="w2"?state.n2:state.n1)+(c==="w1"?`<div class="tile"><h2>Ojo</h2><div class="left">La vuelta del 23/1 no está buscada: no está sumada.</div></div>`:""); return; }
   $("#tiles").innerHTML = tile("full","Viaje completo",15,"",state.n1) + (state.n2>state.n1? tile("late","Desde el 23/1",8,"second",state.n2-state.n1):""); }
-function renderRoute(){ $("#route").innerHTML = STOPS.map(s=>{ const o=chosen(s);
-  return `<button class="stopchip" type="button" data-go="${s.id}"><small>${s.when} · ${nOf(s)} pers.</small><strong>${s.name}</strong><em>${esc(o.name)}</em><span class="p">${tot(s,o)==null?"sin precio":usd(pp(s,o))+" p/p"}</span></button>`; }).join(""); }
-const FILTERS=[["cap25","Hasta $ 25.000",(o,s)=>pp(s,o)!=null&&pp(s,o)/s.nights<=25000],["cap40","Hasta $ 40.000",(o,s)=>pp(s,o)!=null&&pp(s,o)/s.nights<=40000],["cap60","Hasta $ 60.000",(o,s)=>pp(s,o)!=null&&pp(s,o)/s.nights<=60000],["tilc","Solo Tilcara",(o,s)=>s.id!=="tilcara"||!/Maimará|Purmamarca/.test(o.sub)],["tog","Todos juntos",o=>o.tog],["near","Céntrico",o=>o.near==="c"],["kit","Con cocina",o=>o.kit],["host","Hostels",o=>o.hostel]];
-function renderFilters(){ const ab=$("#vt-apply"); if(ab){ ab.textContent=state.applied?"Ver todo":"Aplicar lo más votado"; if(ab.setAttribute) ab.setAttribute("aria-pressed",!!state.applied); if(ab.classList&&ab.classList.toggle){ ab.classList.toggle("primary",!state.applied); ab.classList.toggle("on",!!state.applied); } } const pv=$("#p-voted"); if(pv) pv.hidden=!(LV&&STOPS.some(s=>vtop(s))); $("#filters").innerHTML=`<span>Filtrar:</span>`+FILTERS.map(f=>`<button class="pill ${state.f[f[0]]?"on":""}" type="button" data-f="${f[0]}" aria-pressed="${!!state.f[f[0]]}">${f[1]}</button>`).join(""); }
-function renderStops(){ const act=FILTERS.filter(f=>state.f[f[0]]);
+const calc=()=>state.tab==="calc";
+function renderTabs(){ const T=[["votar","🗳️ Votar","Elegí tu preferida en cada parada"],["calc","🧮 Calcular","Armá el viaje y mirá cuánto sale"]];
+  $("#tabs").innerHTML=T.map(t=>`<button class="tab ${state.tab===t[0]?"on":""}" type="button" role="tab" aria-selected="${state.tab===t[0]}" data-tab="${t[0]}">${t[1]}<small>${t[2]}</small></button>`).join("");
+  $("#tabhint").textContent=calc()?"Acá no se vota: elegí un alojamiento por parada para ver cuánto saldría el viaje por persona. Solo cambia en tu pantalla.":"Mirá las opciones de cada parada y votá la que más te guste. Un voto por parada; lo podés cambiar cuando quieras.";
+  [["#balance",1],["#presets",1],["#traslados",1],["#share",1],["#adj",1],["#votos",0]].forEach(([sel,onCalc])=>{ const el=$(sel); if(el) el.hidden=onCalc?!calc():(calc()||!SHEET_ID); }); }
+function renderRoute(){
+  $("#rhead").innerHTML=calc()?`<b>Tu viaje simulado</b><span>Lo que tenés elegido en cada parada y cuánto sale por persona toda la estadía. Tocá una parada para ir a sus opciones.</span>`:`<b>Cómo viene la votación</b><span>La opción que va ganando en cada parada. Tocá una parada para ir a votar.</span>`;
+  $("#route").innerHTML = STOPS.map(s=>{ if(calc()){ const o=chosen(s);
+      return `<button class="stopchip" type="button" data-go="${s.id}"><small>${s.when} · ${nOf(s)} pers.</small><strong>${s.name}</strong><em>${esc(o.name)}</em><span class="p">${tot(s,o)==null?"sin precio":usd(pp(s,o))+" p/p la estadía"}</span></button>`; }
+    const v=vtop(s), n=v?vcount(s,v):0;
+    return `<button class="stopchip" type="button" data-go="${s.id}"><small>${s.when}</small><strong>${s.name}</strong><em>${v?esc(v.name):"Sin votos todavía"}</em><span class="p">${v?`${n} ${n===1?"voto":"votos"}`:"Sé el primero"}</span></button>`; }).join(""); }
+const FILTERS=[["cap25","Hasta $ 25.000 por persona por noche",(o,s)=>pp(s,o)!=null&&pp(s,o)/s.nights<=25000],["cap40","Hasta $ 40.000 p/p por noche",(o,s)=>pp(s,o)!=null&&pp(s,o)/s.nights<=40000],["cap60","Hasta $ 60.000 p/p por noche",(o,s)=>pp(s,o)!=null&&pp(s,o)/s.nights<=60000],["tilc","Quebrada: solo Tilcara (sin Maimará ni Purmamarca)",(o,s)=>s.id!=="tilcara"||!/Maimará|Purmamarca/.test(o.sub)],["tog","Todos en un mismo lugar",o=>o.tog],["near","A 400 m o menos del centro",o=>o.near==="c"],["kit","Con cocina",o=>o.kit],["host","Hostels",o=>o.hostel]];
+function renderFilters(){ const ab=$("#vt-apply"); if(ab){ ab.textContent=state.applied?"Ver todo":"Aplicar lo más votado"; if(ab.setAttribute) ab.setAttribute("aria-pressed",!!state.applied); if(ab.classList&&ab.classList.toggle){ ab.classList.toggle("primary",!state.applied); ab.classList.toggle("on",!!state.applied); } } const pv=$("#p-voted"); if(pv) pv.hidden=!(LV&&STOPS.some(s=>vtop(s))); $("#filters").innerHTML=(Object.values(state.f).some(Boolean)?`<button class="pill primary" type="button" data-fclear="1">✕ Quitar filtros</button>`:"")+FILTERS.map(f=>`<button class="pill ${state.f[f[0]]?"on":""}" type="button" data-f="${f[0]}" aria-pressed="${!!state.f[f[0]]}">${f[1]}</button>`).join(""); }
+let CNT=[0,0];
+function renderStops(){ CNT=[0,0]; const act=FILTERS.filter(f=>state.f[f[0]]);
   const BASES=[["San Francisco","En la selva: San Francisco","Pueblito adentro de las yungas. Termas y caminatas a mano. Casi sin comercios: se sube con las compras."],["Calilegua","En la puerta del parque: Calilegua","Pueblo chico a 5 km de Libertador. A la selva se sube de día."],["Libertador","En la ciudad: Libertador","Súper, cajero y terminal. Práctico, cero selva: se sube de día."]];
   const YMAP=`<div class="ymap"><p><b>¿Dónde queda?</b> Hay varias yungas en el norte. La nuestra es la de <b>Calilegua, en Jujuy</b>: se entra desde Salta y se sale hacia Tilcara, así que queda de camino.</p>
     <div class="yline" role="img" aria-label="Recorrido: Cafayate, Salta, Yungas en Libertador, Jujuy, Tilcara"><span>Cafayate</span><i>4 h</i><span>Salta</span><i>3 h</i><span class="here">🌿 Yungas<small>Libertador</small></span><i>1 h 45</i><span>Jujuy</span><i>1 h 45</i><span>Tilcara</span></div>
     <p class="hid">Tiempos en micro, del cronograma del grupo. De Libertador a San Francisco se sube por ripio (RP 83).</p></div>`;
-  $("#stops").innerHTML = STOPS.map(s=>{ const n=nOf(s), cur=chosen(s); const all=OPT[s.id]; const list=all.filter(o=>o===cur||act.every(f=>f[2](o,s))); const hidden=all.length-list.length;
+  $("#stops").innerHTML = STOPS.map(s=>{ const n=nOf(s), cur=chosen(s); const all=OPT[s.id]; const list=all.filter(o=>(calc()&&o===cur)||act.every(f=>f[2](o,s))); const hidden=all.length-list.length; CNT[0]+=list.length; CNT[1]+=all.length;
     const P=mine(), vt=vtop(s);
-    const card=(o,ci)=>{ const total=tot(s,o); const vc=vcount(s,o), myv=myVote(s.id)===o.key; const sel=o===cur, T=tot(s,o), p=pp(s,o), cp=pp(s,cur); let delta=""; const nofit=T==null&&o.total!=null;
-      if(!sel&&p!=null&&cp!=null){ const d=p-cp; delta=Math.abs(d)<state.usd/2?`<span class="delta same">igual que la elegida</span>`:`<span class="delta ${d>0?"up":"down"}">${d>0?"+":"−"}${usd(Math.abs(d))} p/p vs. la elegida</span>`; }
+    const card=(o,ci)=>{ const total=tot(s,o); const vc=vcount(s,o), myv=myVote(s.id)===o.key; const sel=calc()&&o===cur, T=tot(s,o), p=pp(s,o), cp=pp(s,cur); let delta=""; const nofit=T==null&&o.total!=null;
+      if(calc()&&!sel&&p!=null&&cp!=null){ const d=p-cp; delta=Math.abs(d)<state.usd/2?`<span class="delta same">igual que la elegida</span>`:`<span class="delta ${d>0?"up":"down"}">${d>0?"+":"−"}${usd(Math.abs(d))} p/p vs. la elegida</span>`; }
       const pics=o.img.length? o.img.map(i=>`<img src="img/${i}.jpg" alt="Foto de ${esc(o.name)}" loading="lazy">`).join("") : `<div class="nopic">Sin foto</div>`;
       const shape=o.tog?(o.hostel?"Hostel":"Todos juntos"):(o.src==="Airbnb"?o.rooms+" lugares separados":o.rooms+(o.sub.includes("deptos")?" deptos":" habitaciones"));
       const est=n!==szOf(s)?`<span class="chip alert">Estimado: se buscó para ${szOf(s)}</span>`:(o.est.includes(n)?`<span class="chip alert">Precio para ${n} estimado</span>`:"");
@@ -383,7 +400,7 @@ function renderStops(){ const act=FILTERS.filter(f=>state.f[f[0]]);
           <div class="pcbox con"><h5>En contra</h5><ul>${o.cons.length?o.cons.slice(0,3).map(x=>`<li>${esc(x)}</li>`).join(""):"<li>Nada grave a la vista</li>"}</ul></div>
           ${o.pros.length>3||o.cons.length>3||o.meta.length?`<details class="more"><summary>Más detalle</summary><ul>${[...o.pros.slice(3).map(x=>"+ "+x),...o.cons.slice(3).map(x=>"– "+x),...o.meta,o.tax,total!=null?fmt(total)+" en total":""].filter(Boolean).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>`:""}
           <div class="foot"><div class="links">${o.links.map(l=>`<a href="${l[1]}" target="_blank" rel="noopener">${esc(l[0])} ↗</a>`).join("")}</div>
-          <div style="display:flex;gap:6px">${VOTE_URL&&(T!=null||o.total==null)&&goes(s)?`<button class="choose vote ${myv?"on":""}" type="button" data-vstop="${s.id}" data-vopt="${o.key}" aria-pressed="${myv}">${myv?"Tu voto ✓":(state.me?"Voto esta 🔥":"Votar")}</button>`:""}${T==null?"":`<button class="choose" type="button" data-stop="${s.id}" data-opt="${o.key}" ${sel?'aria-pressed="true"':""}>${sel?"Elegida":"Ver costo"}</button>`}</div></div>
+          <div style="display:flex;gap:6px">${!calc()&&VOTE_URL&&(T!=null||o.total==null)&&goes(s)?`<button class="choose vote ${myv?"on":""}" type="button" data-vstop="${s.id}" data-vopt="${o.key}" aria-pressed="${myv}">${myv?"Tu voto ✓":(state.me?"Voto esta 🔥":"Votar")}</button>`:""}${!calc()||T==null?"":`<button class="choose" type="button" data-stop="${s.id}" data-opt="${o.key}" ${sel?'aria-pressed="true"':""}>${sel?"Elegida":"Elegir"}</button>`}</div></div>
         </div></article>`; };
     const body = s.id==="yungas" ? YMAP+BASES.map(b=>{ const L=list.filter(o=>o.base===b[0]); return L.length?`<div class="base"><h4>${b[1]}</h4><p>${b[2]}</p></div><div class="cards">${L.map(card).join("")}</div>`:""; }).join("") : `<div class="cards">${list.map(card).join("")}</div>`;
     const away=!goes(s);
@@ -409,7 +426,7 @@ let VOTES=null;
 function csv(t){ const R=[]; let r=[],c="",q=false; for(let i=0;i<t.length;i++){ const ch=t[i]; if(q){ if(ch=='"'){ if(t[i+1]=='"'){c+='"';i++;} else q=false; } else c+=ch; } else if(ch=='"') q=true; else if(ch==","){ r.push(c); c=""; } else if(ch=="\n"){ r.push(c); R.push(r); r=[]; c=""; } else if(ch!="\r") c+=ch; } if(c||r.length){ r.push(c); R.push(r); } return R; }
 const VOTE_URL = "https://script.google.com/macros/s/AKfycbwPztTu6xUQDaWAuek7w6AtigzpPJvjcYwi-hm1Rjt4v0IRb2wOyvRf8r4ZWxffPdnq1A/exec";   // URL /exec del Apps Script que guarda los votos de alojamiento
 const GV=(sheet)=>`https://docs.google.com/spreadsheets/d/${SHEET_ID}/gviz/tq?tqx=out:csv&headers=1${sheet?"&sheet="+encodeURIComponent(sheet):""}&t=${Date.now()}`;
-async function loadVotes(){ const box=$("#votos"); if(!SHEET_ID){ box.hidden=true; return; } box.hidden=false; $("#vt-body").innerHTML="Cargando votos…";
+async function loadVotes(){ const box=$("#votos"); if(!SHEET_ID){ box.hidden=true; return; } box.hidden=calc(); $("#vt-body").innerHTML="Cargando votos…";
   try{ const res=await fetch(GV("")); if(!res.ok) throw 0; const R=csv(await res.text()); const H=R[0]||[], all=R.slice(1).filter(r=>r.some(x=>x));
     const ni=H.findIndex(t=>/nombre o apodo/i.test(t));
     const seen={}; all.forEach((r,i)=>{ const k=(ni>=0&&(r[ni]||"").trim().toLowerCase())||"#"+i; seen[k]=r; }); const rows=Object.values(seen); const dup=all.length-rows.length;
@@ -471,8 +488,10 @@ function castVote(stop,key){ if(!state.me) return false; const me=slug(state.me)
   if(GOOGLE_CLIENT_ID) api({action:"vote",stop,opt:nk?"k_"+nk:""}).then(r=>{ if(!r.ok){ if(r.error==="login") logout("Se venció la sesión: entrá de nuevo y repetí el voto."); loadLV(); } }).catch(()=>loadLV());
   else fetch(VOTE_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({voter:me,stop,opt:nk?"k_"+nk:""})}).catch(()=>{});
   return !!nk; }
-function render(){ fix(); renderTiles(); renderRoute(); renderFilters(); renderStops(); renderMoves(); renderVotes(); $("#summary").textContent=summaryText(); save(); }
+function render(){ fix(); renderTabs(); renderTiles(); renderRoute(); renderFilters(); renderStops(); const fc=$("#fcount"); if(fc) fc.textContent=CNT[0]===CNT[1]?`Se ven las ${CNT[1]} opciones`:`Se ven ${CNT[0]} de ${CNT[1]} opciones`; renderMoves(); renderVotes(); $("#summary").textContent=summaryText(); save(); }
 document.addEventListener("click",e=>{
+  const tb=e.target.closest("[data-tab]"); if(tb){ state.tab=tb.dataset.tab; render(); return; }
+  if(e.target.closest("[data-fclear]")){ state.f={}; state.applied=false; state.prevSel=null; render(); return; }
   const vb=e.target.closest("[data-vopt]"); if(vb){ if(!state.me){ const box=$("#votos"); if(box.scrollIntoView) box.scrollIntoView({block:"center"}); $("#vt-msg").textContent=GOOGLE_CLIENT_ID?"Para votar, entrá con Google acá 👇":(VOTES&&VOTES.names.length?"Para votar, elegí quién sos acá 👇":"Para votar, primero respondé la encuesta con tu apodo."); return; } const on=castVote(vb.dataset.vstop,vb.dataset.vopt); if(on) burst(e.clientX,e.clientY,["🔥","🎉","🦙","🌵","✨"],14); return; }
   if(e.target.closest("#g-out")){ if(window.google) google.accounts.id.disableAutoSelect(); logout(); return; }
   if(e.target.closest("#llama")){ burst(innerWidth/2,innerHeight/3,["🦙"],40,true); return; }

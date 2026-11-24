@@ -315,13 +315,13 @@ const MOVES = [
  {id:"t7", who:0, name:"Humahuaca ↔ Iruya", note:"Ida y vuelta. Tope: 2 × la tarifa Jujuy–Iruya ($ 27.800). Comprar el día anterior.", ars:55600, src:["Todo Jujuy, tarifa desde el 1/10/2026",TJ]},
  {id:"t8", who:0, name:"Humahuaca → Jujuy y al aeropuerto", note:"Micro ($ 15.800) + colectivo al aeropuerto ($ 5.245, sin fuente)", ars:21045, src:["Todo Jujuy, tarifa desde el 1/10/2026",TJ]}
 ];
-let state = {sel:{}, moves:{}, alt:{}, f:{}, me:"", vid:"", myv:{}, n1:5, n2:11, usd:1700, bud:1000};
+let state = {applied:false, prevSel:null, sel:{}, moves:{}, alt:{}, f:{}, me:"", vid:"", myv:{}, n1:5, n2:11, usd:1700, bud:1000};
 const nOf=s=>s.week1?state.n1:state.n2;
 const szOf=s=>{ const n=nOf(s); return s.week1?(n<=5?5:6):(n<=10?10:11); };
 const tot=(s,o)=>{ const v=o.t[szOf(s)]; return v==null?null:v; };
 MOVES.forEach(m=>{ if(m.id){ state.moves[m.id]=true; state.alt[m.id]=0; } });
 const KEY="norte2027i";
-try{ const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s&&s.sel){ state={...state,...s, moves:{...state.moves,...s.moves}, alt:{...state.alt,...s.alt}, f:{}}; } }catch(e){}
+try{ const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s&&s.sel){ state={...state,...s, moves:{...state.moves,...s.moves}, alt:{...state.alt,...s.alt}, f:{}, applied:false, prevSel:null}; } }catch(e){}
 const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){} };
 const $=s=>document.querySelector(s);
 const fmt=n=>"$ "+Math.round(n).toLocaleString("es-AR");
@@ -357,7 +357,7 @@ function renderTiles(){ const t=totals(); const budA=state.bud*state.usd;
 function renderRoute(){ $("#route").innerHTML = STOPS.map(s=>{ const o=chosen(s);
   return `<button class="stopchip" type="button" data-go="${s.id}"><small>${s.when} · ${nOf(s)} pers.</small><strong>${s.name}</strong><em>${esc(o.name)}</em><span class="p">${tot(s,o)==null?"sin precio":usd(pp(s,o))+" p/p"}</span></button>`; }).join(""); }
 const FILTERS=[["cap25","Hasta $ 25.000",(o,s)=>pp(s,o)!=null&&pp(s,o)/s.nights<=25000],["cap40","Hasta $ 40.000",(o,s)=>pp(s,o)!=null&&pp(s,o)/s.nights<=40000],["cap60","Hasta $ 60.000",(o,s)=>pp(s,o)!=null&&pp(s,o)/s.nights<=60000],["tilc","Solo Tilcara",(o,s)=>s.id!=="tilcara"||!/Maimará|Purmamarca/.test(o.sub)],["tog","Todos juntos",o=>o.tog],["near","Céntrico",o=>o.near==="c"],["kit","Con cocina",o=>o.kit],["host","Hostels",o=>o.hostel]];
-function renderFilters(){ const pv=$("#p-voted"); if(pv) pv.hidden=!(LV&&STOPS.some(s=>vtop(s))); $("#filters").innerHTML=`<span>Filtrar:</span>`+FILTERS.map(f=>`<button class="pill ${state.f[f[0]]?"on":""}" type="button" data-f="${f[0]}" aria-pressed="${!!state.f[f[0]]}">${f[1]}</button>`).join(""); }
+function renderFilters(){ const ab=$("#vt-apply"); if(ab){ ab.textContent=state.applied?"Ver todo":"Aplicar lo más votado"; if(ab.setAttribute) ab.setAttribute("aria-pressed",!!state.applied); if(ab.classList&&ab.classList.toggle){ ab.classList.toggle("primary",!state.applied); ab.classList.toggle("on",!!state.applied); } } const pv=$("#p-voted"); if(pv) pv.hidden=!(LV&&STOPS.some(s=>vtop(s))); $("#filters").innerHTML=`<span>Filtrar:</span>`+FILTERS.map(f=>`<button class="pill ${state.f[f[0]]?"on":""}" type="button" data-f="${f[0]}" aria-pressed="${!!state.f[f[0]]}">${f[1]}</button>`).join(""); }
 function renderStops(){ const act=FILTERS.filter(f=>state.f[f[0]]);
   const BASES=[["San Francisco","En la selva: San Francisco","Pueblito adentro de las yungas. Termas y caminatas a mano. Casi sin comercios: se sube con las compras."],["Calilegua","En la puerta del parque: Calilegua","Pueblo chico a 5 km de Libertador. A la selva se sube de día."],["Libertador","En la ciudad: Libertador","Súper, cajero y terminal. Práctico, cero selva: se sube de día."]];
   const YMAP=`<div class="ymap"><p><b>¿Dónde queda?</b> Hay varias yungas en el norte. La nuestra es la de <b>Calilegua, en Jujuy</b>: se entra desde Salta y se sale hacia Tilcara, así que queda de camino.</p>
@@ -434,9 +434,11 @@ function renderVotes(){ if(!VOTES) return; const P=mine();
     diff=`<p class="stopnote" style="margin:8px 0 10px"><b>${esc(state.me)}</b>: las opciones que cumplen lo que pediste tienen la etiqueta “Va con lo que pediste”. ${D.length?`No coincidís con lo más votado en: ${D.map(q=>esc(q.title.replace(/[¿?]/g,""))).join(" · ")}.`:"Coincidís con lo más votado en todo."} La elección final es la del grupo.</p>`; }
   $("#vt-body").innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-bottom:8px"><span class="stopnote" style="margin:0">${VOTES.n} ${VOTES.n===1?"persona respondió":"personas respondieron"} la encuesta${VOTES.dup?` (${VOTES.dup} ${VOTES.dup===1?"respuesta repetida, cuenta":"respuestas repetidas, cuentan"} la última)`:""}.</span>${who}</div>${(()=>{ const c=VOTES.cnt; if(!c||!(c.both+c.w1+c.w2+c.unk+c.other)) return ""; const a=c.both+c.w1,b=c.both+c.w2,p=c.unk+c.other;
     return `<p class="stopnote" style="margin:0 0 10px">Hasta ahora: <b>${a}</b> la 1ª semana · <b>${b}</b> la 2ª${p?` · ${p} por confirmar`:""}. ${a&&b?`<button class="pill" type="button" id="vt-n" data-a="${a}" data-b="${b}">Usar estos números</button>`:""}${VOTES.others.length?`<br><span class="hid">Otros planes: ${VOTES.others.map(esc).join(" · ")}</span>`:""}</p>`; })()}${diff}<details><summary style="cursor:pointer;font-weight:600;font-size:13.5px">Ver el conteo por pregunta</summary><div class="vgrid" style="margin-top:10px">`+VOTES.q.map(q=>{ const tot=q.top.reduce((a,b)=>a+b[1],0); return `<div class="vq"><h5>${esc(q.title)}</h5>${q.top.map((o,i)=>`<div class="vo ${i===0?"win":""}"><span>${esc(o[0])}</span><b>${o[1]}</b><i style="width:${(o[1]/tot*100).toFixed(0)}%"></i></div>`).join("")}</div>`; }).join("")+`</div></details>`; drawLogin(); }
-function applyVotes(){ if(!VOTES) return; const P=prefs(groupWin); state.f={...P.f};
+function applyVotes(){ if(!VOTES) return;
+  if(state.applied){ state.applied=false; state.f={}; if(state.prevSel){ state.sel={...state.prevSel}; state.prevSel=null; } render(); $("#vt-msg").textContent="Sin filtros: se ven todas las opciones."; return; }
+  const P=prefs(groupWin); state.prevSel={...state.sel}; state.applied=true; state.f={...P.f};
   STOPS.forEach(s=>{ const L=priced(s).filter(o=>fits(P,o,s)); if(L.length) state.sel[s.id]=(L.find(o=>o.dflt)||L.find(o=>o.rec)||L.reduce((a,b)=>tot(s,b)<tot(s,a)?b:a)).key; });
-  render(); $("#vt-msg").textContent="Listo: filtros y elegidas ajustados a lo más votado en la encuesta."; }
+  render(); $("#vt-msg").textContent=Object.keys(P.f).length?"Filtros y elegidas según lo más votado. Tocá de nuevo para ver todo.":"Lo más votado no filtra nada todavía: se ven todas las opciones."; }
 // --- votación de alojamientos (anónima) ---
 const GOOGLE_CLIENT_ID = "233917556561-sv3tgans478h0gfr8e23rcbgf336i9m9.apps.googleusercontent.com";   // ID de cliente OAuth: con esto, votar pide sesión de Google
 let TOKEN="", LOGIN_MSG="";
@@ -470,7 +472,7 @@ document.addEventListener("click",e=>{
   if(e.target.closest("#llama")){ burst(innerWidth/2,innerHeight/3,["🦙"],40,true); return; }
   const ch=e.target.closest("[data-opt]"); if(ch){ state.sel[ch.dataset.stop]=ch.dataset.opt; render(); return; }
   const go=e.target.closest("[data-go]"); if(go){ const el=document.getElementById("s-"+go.dataset.go); if(el) el.scrollIntoView({block:"start"}); return; }
-  const f=e.target.closest("[data-f]"); if(f){ const k=f.dataset.f; const on=!state.f[k]; if(k.startsWith("cap")) ["cap25","cap40","cap60"].forEach(c=>state.f[c]=false); state.f[k]=on; render(); return; }
+  const f=e.target.closest("[data-f]"); if(f){ state.applied=false; state.prevSel=null; const k=f.dataset.f; const on=!state.f[k]; if(k.startsWith("cap")) ["cap25","cap40","cap60"].forEach(c=>state.f[c]=false); state.f[k]=on; render(); return; }
   if(e.target.closest("#vt-load")){ loadVotes(); loadLV(); return; }
   if(e.target.closest("#vt-apply")){ applyVotes(); return; }
   const vn=e.target.closest("#vt-n"); if(vn){ state.n1=+vn.dataset.a; state.n2=Math.max(+vn.dataset.b,1); ["n1","n2"].forEach(k=>{ $("#"+k).value=state[k]; }); render(); return; }

@@ -32,7 +32,7 @@ function configurarGuard() {
     props_().setProperty('PUBLICA_ID', ss.getId());
   }
   // la planilla con mails deja de ser pública
-  DriveApp.getFileById(PRIVADA_ID).setSharing(DriveApp.Access.PRIVATE, DriveApp.Permission.NONE);
+  DriveApp.getFileById(PRIVADA_ID).setSharing(DriveApp.Access.PRIVATE, DriveApp.Permission.EDIT);
   // copiar a la pública cada vez que alguien responde o edita su respuesta
   const f = FormApp.getActiveForm();
   ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'alEnviar').forEach(t => ScriptApp.deleteTrigger(t));

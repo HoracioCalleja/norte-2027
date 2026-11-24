@@ -171,6 +171,18 @@ section.stop.away .cards,section.stop.away .ymap,section.stop.away .base{opacity
 .fbox{background:var(--surface);border-radius:20px;padding:12px 16px 14px;margin-top:14px;box-shadow:var(--shadow)}.fhead{display:flex;flex-wrap:wrap;gap:4px 12px;align-items:baseline}.fhead b{font-family:var(--display);font-size:18px}.fhead span{color:var(--muted);font-size:13px}.fbox .presets{padding:8px 0 0}
 .rhead{margin:18px 0 0}.rhead b{font-family:var(--display);font-size:18px}.rhead span{display:block;color:var(--muted);font-size:13.5px}
 [hidden]{display:none!important}
+/* calcular compacto */
+section.stop.cstop{padding:0;margin-top:10px;scroll-margin-top:200px}
+.crow{display:grid;grid-template-columns:120px 1fr auto;gap:14px;align-items:center;background:var(--surface);border-radius:22px;padding:10px 14px 10px 10px;box-shadow:var(--shadow);transition:box-shadow .3s,transform .3s}
+.crow>img,.crow>.nopic{width:120px;height:90px;object-fit:cover;border-radius:16px;cursor:pointer;display:grid;place-items:center;color:var(--muted);font-size:12px;background:var(--line)}
+.crow.off{opacity:.45}.crow.open{box-shadow:0 0 0 2px var(--accent)}.crow.flash{box-shadow:0 0 0 3px var(--good);transform:scale(1.01)}
+.ck{font-size:12.5px;color:var(--muted)}.ck b{color:var(--ink);font:700 16px var(--display);margin-right:8px}
+.cn{font-weight:700;font-size:16px;margin:3px 0 2px}.cp{font-size:13px;color:var(--muted)}.cp b{color:var(--ink);font:700 16px var(--display)}
+.cact{display:flex;flex-direction:column;gap:8px;align-items:center}.cact .choose{white-space:nowrap}
+.cexp{margin:8px 0 22px;padding:14px;border:2px dashed var(--line);border-radius:24px}
+.cexph{display:flex;gap:4px 12px;align-items:baseline;flex-wrap:wrap}.cexph b{font:700 18px var(--display)}.cexph span{color:var(--muted);font-size:13px}
+.cfil{padding:8px 0 12px}
+@media (max-width:640px){ .crow{grid-template-columns:84px 1fr;gap:10px;padding:10px} .crow>img,.crow>.nopic{width:84px;height:84px} .cact{grid-column:1/-1;flex-direction:row;justify-content:space-between} .cexp{padding:10px} }
 /* ficha */
 .card{cursor:pointer}.card:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
 .pics{position:relative}.morepics{position:absolute;right:8px;bottom:8px;background:rgba(15,20,30,.78);color:#fff;font:600 12px var(--body);border-radius:99px;padding:5px 10px;pointer-events:none}
@@ -325,12 +337,12 @@ body{padding-bottom:74px}
 <div class="wrap">
   <div id="presets"><div class="presets" id="plist"></div><p class="vnote" id="pnote" style="margin:6px 0 0"></p></div>
   <section id="votos" class="share" hidden><div style="display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center"><h3 style="font-family:var(--display);margin:0 auto 0 0;font-size:20px">La encuesta del grupo</h3><span id="vt-who" style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"></span><button class="pill" id="vt-load" type="button">↻ Actualizar</button></div><div id="vt-body" style="margin-top:10px"></div><div class="vapply"><button class="pill primary" id="vt-apply" type="button">Mostrar solo lo que cumple con esto</button><span>Prende los filtros de abajo según lo que va ganando (tope, cocina, Tilcara…). Tocás de nuevo y vuelven todas.</span></div><p id="vt-msg" class="hid" aria-live="polite"></p><div id="vt-more"></div></section>
-  <div class="fbox"><div class="fhead"><b>Filtrá qué opciones ver</b><span id="fcount"></span></div><div class="presets" id="filters"></div></div>
+  <div class="fbox" id="fbox"><div class="fhead"><b>Filtrá qué opciones ver</b><span id="fcount"></span></div><div class="presets" id="filters"></div></div>
   <div class="rhead" id="rhead"></div>
   <nav class="route" id="route" aria-label="Paradas"></nav>
   <main id="stops"></main>
   <section class="stop" id="traslados">
-    <div class="stophead"><h3>Traslados</h3><span class="when">por persona</span></div>
+    <div class="stophead"><h3>Traslados</h3><span class="when" id="mv-tot">por persona</span></div>
     <p class="stopnote">Llegar y volver es de cada uno. Lo de allá es gasto común.</p>
     <div class="moves" id="moves"></div>
   </section>
@@ -428,9 +440,9 @@ const calc=()=>state.tab==="calc";
 function renderTabs(){ const T=[["votar","🗳️ Votar","Elegí tu preferida en cada parada"],["calc","🧮 Calcular","Armá el viaje y mirá cuánto sale"]];
   $("#tabs").innerHTML=T.map(t=>`<button class="tab ${state.tab===t[0]?"on":""}" type="button" role="tab" aria-selected="${state.tab===t[0]}" data-tab="${t[0]}">${t[1]}<small>${t[2]}</small></button>`).join("");
   $("#tabhint").textContent=calc()?"Acá no se vota: elegí un alojamiento por parada para ver cuánto saldría el viaje por persona. Solo cambia en tu pantalla. "+(myTr()?`Estás viendo tu tramo, ${state.me}: ${myTr()==="both"?"viaje completo":myTr()==="w1"?"del 16 al 23/1":"desde el 23/1"}.`:state.me?`${state.me}, no encontré tu tramo en la encuesta: ves el viaje completo.`:"Ves el viaje del grupo completo: para ver solo tu tramo, iniciá sesión con Google en la pestaña Votar."):"Mirá las opciones de cada parada y votá la que más te guste. Un voto por parada; lo podés cambiar cuando quieras.";
-  [["#balance",1],["#presets",1],["#traslados",1],["#share",1],["#adj",1],["#votos",0]].forEach(([sel,onCalc])=>{ const el=$(sel); if(el) el.hidden=onCalc?!calc():(calc()||!SHEET_ID); }); }
+  [["#balance",1],["#presets",1],["#traslados",1],["#share",1],["#adj",1],["#votos",0],["#fbox",2],["#route",2]].forEach(([sel,onCalc])=>{ const el=$(sel); if(el) el.hidden=onCalc===2?calc():onCalc?!calc():(calc()||!SHEET_ID); }); }
 function renderRoute(){
-  $("#rhead").innerHTML=calc()?`<b>Tu viaje simulado${myTr()==="w2"?" · te sumás el 23/1":myTr()==="w1"?" · vas hasta el 23/1":""}</b><span>Lo que tenés elegido en cada parada y cuánto sale por persona toda la estadía. Tocá una parada para ir a sus opciones.</span>`:`<b>Cómo viene la votación</b><span>La opción que va ganando en cada parada. Tocá una parada para ir a votar.</span>`;
+  $("#rhead").innerHTML=calc()?`<b>Tu viaje simulado${myTr()==="w2"?" · te sumás el 23/1":myTr()==="w1"?" · vas hasta el 23/1":""}</b><span>Un alojamiento por parada. Tocá <b style="font:inherit;font-weight:700;color:var(--ink)">Cambiar</b> para ver las otras opciones de esa parada. Los traslados están justo abajo.</span>`:`<b>Cómo viene la votación</b><span>La opción que va ganando en cada parada. Tocá una parada para ir a votar.</span>`;
   $("#route").innerHTML = STOPS.map(s=>{ if(calc()){ const o=chosen(s); if(!goes(s)) return `<button class="stopchip off" type="button" data-go="${s.id}"><small>${s.when}</small><strong>${s.name}</strong><em>No vas a esta parada</em><span class="p">no se suma a tu viaje</span></button>`;
       return `<button class="stopchip" type="button" data-go="${s.id}"><small>${s.when} · ${nOf(s)} pers.</small><strong>${s.name}</strong><em>${esc(o.name)}</em><span class="p">${tot(s,o)==null?"sin precio":usd(pp(s,o))+" p/p la estadía"}</span></button>`; }
     const v=vtop(s), n=v?vcount(s,v):0; const tie=v?OPT[s.id].filter(o=>vcount(s,o)===n).length:0; if(tie>1) return `<button class="stopchip" type="button" data-go="${s.id}"><small>${s.when}</small><strong>${s.name}</strong><em>Empate entre ${tie}</em><span class="p">${n} ${n===1?"voto":"votos"} cada una</span></button>`;
@@ -442,7 +454,7 @@ function renderPresets(){ const hasV=LV&&STOPS.some(s=>vtop(s)); const P=PRESETS
   const nf=Object.values(state.f).some(Boolean);
   $("#pnote").textContent=(on?`${on[1]}: ${on[2]}.`:"Elegiste vos las opciones. Tocá un botón para que las elija la página.")+" Cambia la opción elegida en las 6 paradas y recalcula el total de arriba."+(nf&&(!on||on[0]!=="rec")?" Con filtros activos, busca solo entre las opciones que los cumplen.":""); }
 function renderFilters(){ const ab=$("#vt-apply"); if(ab){ ab.textContent=state.applied?"✕ Volver a ver todas":"Mostrar solo lo que cumple con esto"; if(ab.setAttribute) ab.setAttribute("aria-pressed",!!state.applied); if(ab.classList&&ab.classList.toggle){ ab.classList.toggle("primary",!state.applied); ab.classList.toggle("on",!!state.applied); } } $("#filters").innerHTML=(Object.values(state.f).some(Boolean)?`<button class="pill primary" type="button" data-fclear="1">✕ Quitar filtros</button>`:"")+FILTERS.map(f=>`<button class="pill ${state.f[f[0]]?"on":""}" type="button" data-f="${f[0]}" aria-pressed="${!!state.f[f[0]]}">${f[1]}</button>`).join(""); }
-let CNT=[0,0];
+let CNT=[0,0], OPENS={};
 function renderStops(){ CNT=[0,0]; const act=FILTERS.filter(f=>state.f[f[0]]);
   const BASES=[["San Francisco","En la selva: San Francisco","Pueblito adentro de las yungas. Termas y caminatas a mano. Casi sin comercios: se sube con las compras."],["Calilegua","En la puerta del parque: Calilegua","Pueblo chico a 5 km de Libertador. A la selva se sube de día."],["Libertador","En la ciudad: Libertador","Súper, cajero y terminal. Práctico, cero selva: se sube de día."]];
   const YMAP=`<div class="ymap"><p><b>¿Dónde queda?</b> Hay varias yungas en el norte. La nuestra es la de <b>Calilegua, en Jujuy</b>: se entra desde Salta y se sale hacia Tilcara, así que queda de camino.</p>
@@ -469,9 +481,16 @@ function renderStops(){ CNT=[0,0]; const act=FILTERS.filter(f=>state.f[f[0]]);
         </div></article>`; };
     const body = s.id==="yungas" ? YMAP+BASES.map(b=>{ const L=list.filter(o=>o.base===b[0]); return L.length?`<div class="base"><h4>${b[1]}</h4><p>${b[2]}</p></div><div class="cards">${L.map(card).join("")}</div>`:""; }).join("") : `<div class="cards">${list.map(card).join("")}</div>`;
     const away=!goes(s);
+    if(calc()){ const o=cur, T=tot(s,o), p=pp(s,o), open=!!OPENS[s.id]&&!away; const th=o.img.length?`<img src="img/${o.img[0]}.jpg" alt="Foto de ${esc(o.name)}" loading="lazy" data-dets="${s.id}" data-detk="${o.key}">`:`<div class="nopic" data-dets="${s.id}" data-detk="${o.key}">Sin foto</div>`;
+      const est=n!==szOf(s)?`<span class="chip alert">Estimado: se buscó para ${szOf(s)}</span>`:(o.est.includes(n)?`<span class="chip alert">Precio para ${n} estimado</span>`:"");
+      const row=away?`<div class="crow off"><div class="nopic">—</div><div><div class="ck"><b>${s.name}</b>${s.when}</div><div class="cn">No vas a esta parada</div><div class="cp">No se suma a tu viaje.</div></div><div></div></div>`
+        :`<div class="crow ${open?"open":""}">${th}<div><div class="ck"><b>${s.name}</b>${s.when} · ${s.nights} ${s.nights>1?"noches":"noche"} · ${n} pers.</div><div class="cn">${esc(o.name)}</div><div class="cp">${p==null?"Sin precio":`<b>${fmt(p/s.nights)}</b> por persona por noche · ${usd(p)} la estadía`}</div><div class="chips" style="margin-top:5px">${o.rating?`<span class="chip star">★ ${esc(o.rating)}</span>`:""}${o.rec?`<span class="chip">Recomendada</span>`:""}${vt===o?`<span class="chip votes">La más votada</span>`:""}${est}</div></div>
+          <div class="cact"><button class="choose" type="button" data-ctog="${s.id}" aria-expanded="${open}">${open?"Cerrar ▴":"Cambiar ▾"}</button><button class="seedet" type="button" data-dets="${s.id}" data-detk="${o.key}">Ver fotos y detalle</button></div></div>`;
+      const fil=FILTERS.map(f=>`<button class="pill ${state.f[f[0]]?"on":""}" type="button" data-f="${f[0]}" aria-pressed="${!!state.f[f[0]]}">${f[1]}</button>`).join("");
+      return `<section class="stop cstop ${away?"away":""}" id="s-${s.id}">${row}${open?`<div class="cexp"><div class="cexph"><b>Otras opciones en ${s.name}</b><span>${list.length} de ${all.length}${hidden?" (el resto, oculto por los filtros)":""}. Elegí una y se cierra solo.</span></div><div class="presets cfil"><span>Filtrar:</span>${fil}</div>${body}<div style="text-align:center;margin-top:10px"><button class="pill" type="button" data-ctog="${s.id}">Cerrar ▴</button></div></div>`:""}</section>`; }
     return `<section class="stop ${away?"away":""}" id="s-${s.id}"><div class="stophead"><h3>${s.name}</h3><span class="when">${s.when} · ${s.nights} ${s.nights>1?"noches":"noche"}</span><span class="tag ${s.week1?"w1":""}">${n} pers.</span>${(()=>{ const v=LV&&LV[s.id]?Object.values(LV[s.id]).reduce((a,b)=>a+b.length,0):0; const who=v?[...new Set(Object.values(LV[s.id]).flat().map(nameOf))].join(", "):""; return v?`<span class="when">Votaron ${v}: ${esc(who)}</span>`:""; })()}</div>
       <p class="stopnote">${away?"No estás en esta parada. ":""}${esc(s.note)}</p>${body}${hidden?`<p class="hid">${hidden} ${hidden>1?"opciones ocultas":"opción oculta"} por los filtros.</p>`:""}</section>`; }).join(""); }
-function renderMoves(){ $("#moves").innerHTML = MOVES.map(m=>{ if(m.g) return `<div class="grouphead">${m.g}</div>`;
+function renderMoves(){ const tt=totals().full, mt=$("#mv-tot"); if(mt) mt.textContent=`por persona · ${usd(tt.move)} allá + ${usd(tt.fly)} llegar y volver`; $("#moves").innerHTML = MOVES.map(m=>{ if(m.g) return `<div class="grouphead">${m.g}</div>`;
     const on=state.moves[m.id]; const who=m.who===1?`Solo los ${state.n1} de la primera semana`:m.who===2?"Solo los que se suman el 23/1":""; const alts=moveAlts(m);
     const alt=alts?`<select id="alt-${m.id}" data-alt="${m.id}" aria-label="Opción para ${esc(m.name)}">${alts.map((a,i)=>`<option value="${i}" ${i==(state.alt[m.id]||0)?"selected":""}>${esc(a[0])}${a[1]?` · ${fmt(a[1])} p/p`:" · no suma"}</option>`).join("")}</select>`:"";
     const note=[m.note,m.extraNote,who].filter(Boolean).join(" · "); const sa=alts?alts[Math.min(state.alt[m.id]||0,alts.length-1)]:null; const S=sa&&sa[2]?[sa[2],sa[3]]:(m.src||(m.link?["Google Flights, 24/11/2026",m.link]:null)); const srcH=S?`<small class="src">${S[1]?"Fuente: ":""}${S[1]?`<a href="${S[1]}" target="_blank" rel="noopener">${esc(S[0])} ↗</a>`:esc(S[0])}</small>`:"";
@@ -610,7 +629,9 @@ document.addEventListener("click",e=>{
   const vb=e.target.closest("[data-vopt]"); if(vb){ if(!state.me){ closeDet(); PEND={stop:vb.dataset.vstop,opt:vb.dataset.vopt}; askLogin(); return; } const on=castVote(vb.dataset.vstop,vb.dataset.vopt); if(on) burst(e.clientX,e.clientY,["🔥","🎉","🦙","🌵","✨"],14); return; }
   if(e.target.closest("#g-out")){ if(window.google) google.accounts.id.disableAutoSelect(); logout(); return; }
   if(e.target.closest("#llama")){ burst(innerWidth/2,innerHeight/3,["🦙"],40,true); return; }
-  const ch=e.target.closest("[data-opt]"); if(ch){ state.sel[ch.dataset.stop]=ch.dataset.opt; render(); return; }
+  const ct=e.target.closest("[data-ctog]"); if(ct){ const k=ct.dataset.ctog; OPENS[k]=!OPENS[k]; render(); const el=document.getElementById("s-"+k); if(el&&el.scrollIntoView) el.scrollIntoView({block:"start",behavior:"smooth"}); return; }
+  const dk=e.target.closest("[data-detk]"); if(dk){ openDet(dk.dataset.dets,dk.dataset.detk); return; }
+  const ch=e.target.closest("[data-opt]"); if(ch){ const k=ch.dataset.stop; state.sel[k]=ch.dataset.opt; const was=calc()&&OPENS[k]; OPENS[k]=false; render(); if(was){ const el=document.getElementById("s-"+k); if(el){ if(el.scrollIntoView) el.scrollIntoView({block:"center",behavior:"smooth"}); const r=el.querySelector&&el.querySelector(".crow"); if(r&&r.classList){ r.classList.add("flash"); setTimeout(()=>r.classList.remove("flash"),1200); } } } return; }
   const go=e.target.closest("[data-go]"); if(go){ const el=document.getElementById("s-"+go.dataset.go); if(el) el.scrollIntoView({block:"start"}); return; }
   const f=e.target.closest("[data-f]"); if(f){ state.applied=false; state.prevSel=null; const k=f.dataset.f; const on=!state.f[k]; if(k.startsWith("cap")) ["cap25","cap40","cap60"].forEach(c=>state.f[c]=false); state.f[k]=on; render(); return; }
   if(e.target.closest("#vt-load")){ loadVotes(); loadLV(); return; }

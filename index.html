@@ -355,13 +355,13 @@ function applyVotes(){ if(!VOTES) return; const P=prefs(groupWin); state.f={...P
   render(); $("#vt-msg").textContent="Listo: filtros y elegidas ajustados a lo más votado en la encuesta."; }
 // --- votación de alojamientos (anónima) ---
 let LV=null;
-async function loadLV(){ if(!SHEET_ID||!VOTE_URL) return; try{ const R=csv(await (await fetch(GV("Votos"))).text()); if(!R[0]||R[0][1]!=="voter") return; const last={}; R.slice(1).forEach(r=>{ if(r[1]&&r[2]) last[r[1]+"|"+r[2]]=r[3]; });
+async function loadLV(){ if(!SHEET_ID||!VOTE_URL) return; try{ const R=csv(await (await fetch(GV("Votos"))).text()); if(!R[0]||R[0][1]!=="voter") return; const last={}; R.slice(1).forEach(r=>{ if(r[1]&&r[2]) last[r[1]+"|"+r[2]]=String(r[3]||"").replace(/^k_/,""); });
     LV={}; Object.entries(last).forEach(([k,opt])=>{ const st=k.split("|")[1]; if(!opt) return; (LV[st]=LV[st]||{})[opt]=(LV[st][opt]||0)+1; }); render(); }catch(e){} }
 const vcount=(s,o)=>LV&&LV[s.id]&&LV[s.id][o.key]||0;
 const vtop=s=>{ const L=OPT[s.id].filter(o=>vcount(s,o)>0); return L.length?L.reduce((a,b)=>vcount(s,b)>vcount(s,a)?b:a):null; };
-function castVote(stop,key){ if(!state.vid) state.vid=Math.random().toString(36).slice(2)+Date.now().toString(36); const prev=state.myv[stop]; const nk=prev===key?"":key; state.myv[stop]=nk;
+function castVote(stop,key){ if(!state.vid) state.vid="v"+Math.random().toString(36).slice(2)+Date.now().toString(36); const prev=state.myv[stop]; const nk=prev===key?"":key; state.myv[stop]=nk;
   LV=LV||{}; LV[stop]=LV[stop]||{}; if(prev) LV[stop][prev]=Math.max(0,(LV[stop][prev]||0)-1); if(nk) LV[stop][nk]=(LV[stop][nk]||0)+1; render();
-  fetch(VOTE_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({voter:state.vid,stop,opt:nk})}).catch(()=>{}); }
+  fetch(VOTE_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({voter:state.vid,stop,opt:nk?"k_"+nk:""})}).catch(()=>{}); }
 function render(){ fix(); renderTiles(); renderRoute(); renderFilters(); renderStops(); renderMoves(); renderVotes(); $("#summary").textContent=summaryText(); save(); }
 document.addEventListener("click",e=>{
   const vb=e.target.closest("[data-vopt]"); if(vb){ castVote(vb.dataset.vstop,vb.dataset.vopt); return; }

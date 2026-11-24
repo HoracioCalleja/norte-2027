@@ -161,6 +161,7 @@ a{color:var(--accent)}
 .base{margin:18px 0 10px}.base:first-of-type{margin-top:0}.base h4{font-family:var(--display);font-size:18px;margin:0}.base p{margin:2px 0 0;color:var(--muted);max-width:80ch;font-size:13.5px}
 .card.nofit{opacity:.6}
 section.stop.away .cards,section.stop.away .ymap,section.stop.away .base{opacity:.45}
+#gbtn{display:inline-flex;color-scheme:light;border-radius:99px;overflow:hidden;height:32px;vertical-align:middle}#gbtn iframe{color-scheme:light}
 .chip.mine{background:var(--accent-soft);border-color:transparent;color:var(--accent);font-weight:600}.chip.votes{background:var(--ink);color:var(--bg);border-color:transparent;font-weight:600}.choose.vote.on{background:var(--good);border-color:var(--good);color:#fff}
 .vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}.vq h5{margin:0 0 5px;font:600 13px var(--body)}.vo{position:relative;display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:4px 8px;border-radius:6px;overflow:hidden;margin-top:3px;background:var(--bg)}.vo span,.vo b{position:relative;z-index:1}.vo i{position:absolute;inset:0 auto 0 0;background:var(--line)}.vo.win i{background:var(--accent-soft)}.vo.win{font-weight:600}
 .fixed{font-size:13px;color:var(--muted);align-self:center;max-width:26ch}
@@ -445,7 +446,7 @@ async function whoami(){ if(!TOKEN) return; try{ const r=await api({action:"me"}
 function initLogin(){ if(!GOOGLE_CLIENT_ID) return; const s=document.createElement("script"); s.src="https://accounts.google.com/gsi/client"; s.async=true;
   s.onload=()=>{ google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID,auto_select:true,callback:r=>{ TOKEN=r.credential; try{ sessionStorage.setItem("norte_tok",TOKEN); }catch(e){} whoami(); }}); drawLogin(); if(TOKEN) whoami(); };
   document.head.appendChild(s); }
-function drawLogin(){ const el=document.getElementById("gbtn"); if(el&&window.google&&!TOKEN) google.accounts.id.renderButton(el,{theme:"filled_blue",shape:"pill",text:"signin_with",locale:"es"}); }
+function drawLogin(){ const el=document.getElementById("gbtn"); if(el&&window.google&&!TOKEN) google.accounts.id.renderButton(el,{theme:matchMedia("(prefers-color-scheme: dark)").matches?"filled_black":"outline",shape:"pill",size:"medium",text:"signin_with",logo_alignment:"left",locale:"es"}); }
 let LV=null;
 const slug=n=>"n_"+String(n||"").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"_").slice(0,60);
 const nameOf=v=>{ const n=VOTES&&VOTES.names.find(n=>slug(n)===v); return n||v.replace(/^n_/,""); };

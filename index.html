@@ -325,12 +325,12 @@ const MOVES = [
  {id:"t7", who:0, name:"Humahuaca ↔ Iruya", note:"Ida y vuelta. Tope: 2 × la tarifa Jujuy–Iruya ($ 27.800). Comprar el día anterior.", ars:55600, src:["Todo Jujuy, tarifa desde el 1/10/2026",TJ]},
  {id:"t8", who:0, name:"Humahuaca → Jujuy y al aeropuerto", note:"Micro ($ 15.800) + colectivo al aeropuerto ($ 5.245, sin fuente)", ars:21045, src:["Todo Jujuy, tarifa desde el 1/10/2026",TJ]}
 ];
-let state = {tab:"votar", manualN:false, applied:false, prevSel:null, sel:{}, moves:{}, alt:{}, f:{}, me:"", vid:"", myv:{}, n1:5, n2:11, usd:1700, bud:1000};
+let state = {tab:"votar", manualN:false, applied:false, prevSel:null, sel:{}, moves:{}, alt:{}, f:{}, me:"", vid:"", myv:{}, n1:6, n2:11, usd:1700, bud:1000};
 const nOf=s=>s.week1?state.n1:state.n2;
 const szOf=s=>{ const n=nOf(s); return s.week1?(n<=5?5:6):(n<=10?10:11); };
 const tot=(s,o)=>{ const v=o.t[szOf(s)]; return v==null?null:v; };
 MOVES.forEach(m=>{ if(m.id){ state.moves[m.id]=true; state.alt[m.id]=0; } });
-const KEY="norte2027k";
+const KEY="norte2027l";
 try{ const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s&&s.sel){ state={...state,...s, moves:{...state.moves,...s.moves}, alt:{...state.alt,...s.alt}, f:{}, applied:false, prevSel:null, tab:"votar"}; } }catch(e){}
 const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){} };
 const $=s=>document.querySelector(s);
@@ -440,7 +440,7 @@ async function loadVotes(){ const box=$("#votos"); if(!SHEET_ID){ box.hidden=tru
     if(state.me&&!VOTES.names.includes(state.me)&&!GOOGLE_CLIENT_ID) state.me="";
     if(GOOGLE_CLIENT_ID&&!TOKEN) state.me="";
     render(); }catch(e){ $("#vt-body").innerHTML="No pude leer la planilla de respuestas. Revisá que esté compartida para cualquiera con el enlace."; } }
-const MIN_RESP=8, DEF_N=[5,11];
+const MIN_RESP=8, DEF_N=[6,11];
 function autoN(){ if(state.manualN) return; const c=VOTES&&VOTES.cnt; const ok=c&&c.both+c.w1+c.w2>=MIN_RESP&&c.both+c.w1>0&&c.both+c.w2>0; state.n1=ok?c.both+c.w1:DEF_N[0]; state.n2=ok?c.both+c.w2:DEF_N[1]; ["n1","n2"].forEach(k=>{ $("#"+k).value=state[k]; }); }
 const groupWin=re=>{ const q=VOTES&&VOTES.q.find(q=>re.test(q.title)); return q?q.top[0][0]:""; };
 const myWin=re=>{ if(!VOTES||!state.me) return ""; const r=[...VOTES.rows].reverse().find(r=>(r[VOTES.ni]||"").trim()===state.me); const i=VOTES.H.findIndex(t=>re.test(t)); return r&&i>=0?String(r[i]||""):""; };

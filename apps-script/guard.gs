@@ -10,6 +10,7 @@
  * Pasos: 1) completar CLIENT_ID  2) correr configurarGuard()  3) volver a implementar la app web.
  */
 const CLIENT_ID = 'PEGAR_ACA_EL_ID_DE_CLIENTE.apps.googleusercontent.com';
+const FORM_ID = '1bhGv7hy_EebO_W3f660CenENwRugl80K7OyWq2fF3cY';
 const PRIVADA_ID = '1MoXd355xeRHr0ScwCCYQ3hnW83dSZNsEvGahPnI4hUo';   // planilla de respuestas del form
 
 const props_ = () => PropertiesService.getScriptProperties();
@@ -34,7 +35,7 @@ function configurarGuard() {
   // la planilla con mails deja de ser pública
   DriveApp.getFileById(PRIVADA_ID).setSharing(DriveApp.Access.PRIVATE, DriveApp.Permission.EDIT);
   // copiar a la pública cada vez que alguien responde o edita su respuesta
-  const f = FormApp.getActiveForm();
+  const f = FormApp.openById(FORM_ID);
   ScriptApp.getProjectTriggers().filter(t => t.getHandlerFunction() === 'alEnviar').forEach(t => ScriptApp.deleteTrigger(t));
   ScriptApp.newTrigger('alEnviar').forForm(f).onFormSubmit().create();
   sincronizar();

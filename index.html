@@ -545,7 +545,7 @@ function renderDet(keep){ const d=$("#det"); if(!DET||!d) return; const s=STOPS.
   const sl=keep&&$("#det .gtrack")?$("#det .gtrack").scrollLeft:0, st=keep&&$("#det .dscroll")?$("#det .dscroll").scrollTop:0;
   const shape=o.tog?(o.hostel?"Hostel":"Todos juntos"):(o.src==="Airbnb"?o.rooms+" lugares separados":o.rooms+(o.sub.includes("deptos")?" deptos":" habitaciones"));
   const est=n!==szOf(s)?`<span class="chip alert">Estimado: se buscó para ${szOf(s)}</span>`:(o.est.includes(n)?`<span class="chip alert">Precio para ${n} estimado</span>`:"");
-  const meta=[...o.meta,o.tax,T!=null?`${fmt(T)} en total por ${s.nights} ${s.nights>1?"noches":"noche"}, ${n} personas`:"",o.dist?`Distancia: ${o.dist}`:""].filter(Boolean);
+  const meta=[...o.meta,o.tax,T!=null?`${fmt(T)} en total por ${s.nights} ${s.nights>1?"noches":"noche"}, ${n} personas`:""].filter(Boolean);
   const src=o.links.map(l=>`<a href="${l[1]}" target="_blank" rel="noopener">Ver en ${esc(l[0])} ↗</a>`).join("");
   const act=!calc()?(VOTE_URL&&(T!=null||o.total==null)&&goes(s)?`<button class="choose vote ${myv?"on":""}" type="button" data-vstop="${s.id}" data-vopt="${o.key}" aria-pressed="${myv}">${myv?"Tu voto ✓":(state.me?"Voto esta 🔥":"Votar")}</button>`:""):(T==null?"":`<button class="choose" type="button" data-stop="${s.id}" data-opt="${o.key}" aria-pressed="${sel}">${sel?"Elegida ✓":"Elegir esta"}</button>`);
   d.innerHTML=`<div class="dwrap"><button class="dclose" type="button" data-dclose="1" aria-label="Cerrar">✕</button><div class="dscroll">

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Norte 2027: qué hacer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@600;800&family=Instrument+Sans:wght@400;600;700&display=swap">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+/* Layout: balance pegado arriba, ruta como fila de paradas, y por parada una grilla de tarjetas elegibles.
+   Motivo: franja de aguayo (los colores del Hornocal) como única decoración. */
+:root{
+  --bg:#f3f4f1; --surface:#ffffff; --ink:#1b2230; --muted:#5d6675; --line:#dcdfe0;
+  --accent:#b3206b; --accent-ink:#ffffff; --accent-soft:#f9e6f0;
+  --good:#1f7a4d; --good-soft:#e3f3ea; --warn:#9a5b00; --warn-soft:#fbefd7; --bad:#b3261e;
+  --display:"Bricolage Grotesque","Trebuchet MS",sans-serif;
+  --body:"Instrument Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  --shadow:0 1px 2px rgba(20,28,45,.06),0 6px 18px rgba(20,28,45,.06);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#12161d; --surface:#1b212b; --ink:#eceff3; --muted:#9aa4b3; --line:#2e3644;
+    --accent:#f06aa9; --accent-ink:#1a0b13; --accent-soft:#3a1c2c;
+    --good:#5fcf95; --good-soft:#173527; --warn:#f0b24a; --warn-soft:#3a2c12; --bad:#ff8a80;
+    --shadow:0 1px 2px rgba(0,0,0,.4);
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#12161d; --surface:#1b212b; --ink:#eceff3; --muted:#9aa4b3; --line:#2e3644;
+  --accent:#f06aa9; --accent-ink:#1a0b13; --accent-soft:#3a1c2c;
+  --good:#5fcf95; --good-soft:#173527; --warn:#f0b24a; --warn-soft:#3a2c12; --bad:#ff8a80;
+  --shadow:0 1px 2px rgba(0,0,0,.4);
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion: reduce){html{scroll-behavior:auto}*{transition:none!important}}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:15px;line-height:1.45}
+.aguayo{height:8px;background:linear-gradient(90deg,#b3206b 0 12%,#e2582c 12% 22%,#f2b632 22% 30%,#1f7a4d 30% 42%,#1c6fa8 42% 52%,#5a2d82 52% 62%,#e2582c 62% 70%,#f2b632 70% 80%,#b3206b 80% 92%,#1c6fa8 92% 100%)}
+.wrap{max-width:1180px;margin:0 auto;padding:0 20px}
+header.top{padding:22px 0 14px;display:flex;flex-wrap:wrap;gap:14px 28px;align-items:flex-end;justify-content:space-between}
+h1{font-family:var(--display);font-weight:700;font-size:clamp(26px,4vw,38px);line-height:1.05;margin:0;letter-spacing:-.01em;text-wrap:balance}
+.sub{color:var(--muted);margin:6px 0 0;max-width:62ch}
+.controls{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:flex-end}
+.field{display:flex;flex-direction:column;gap:3px;font-size:12px;color:var(--muted)}
+.field input{width:92px;padding:7px 9px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:600 15px var(--body);font-variant-numeric:tabular-nums}
+.field input.wide{width:110px}
+button,select,input{font-family:var(--body)}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+
+/* balance */
+.balance{position:sticky;top:0;z-index:20;background:var(--bg);padding:10px 0 12px;border-bottom:1px solid var(--line)}
+.tiles{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:12px 14px;box-shadow:var(--shadow)}
+.tile h2{font:600 12px var(--body);text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin:0 0 4px}
+.big{display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 12px}
+.big b{font-family:var(--display);font-size:clamp(24px,3.4vw,34px);line-height:1;font-variant-numeric:tabular-nums}
+.big span{color:var(--muted);font-variant-numeric:tabular-nums}
+.meter{height:10px;border-radius:99px;background:var(--line);overflow:hidden;margin:9px 0 6px;display:flex}
+.meter i{display:block;height:100%}
+.meter .m-fly{background:#1c6fa8}.meter .m-stay{background:var(--accent)}.meter .m-move{background:#f2b632}
+.left{font-size:13px;font-variant-numeric:tabular-nums}
+.left b.ok{color:var(--good)}.left b.over{color:var(--bad)}
+.legend{display:flex;flex-wrap:wrap;gap:4px 14px;font-size:12px;color:var(--muted);margin-top:8px}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:3px;margin-right:5px}
+
+/* ruta */
+.route{display:flex;gap:8px;overflow-x:auto;padding:14px 0 4px}
+.stopchip{flex:1 0 150px;text-align:left;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:9px 11px;cursor:pointer;color:var(--ink)}
+.stopchip:hover{border-color:var(--accent)}
+.stopchip small{display:block;color:var(--muted);font-size:11.5px}
+.stopchip strong{display:block;font-family:var(--display);font-size:16px}
+.stopchip em{display:block;font-style:normal;font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stopchip .p{font-variant-numeric:tabular-nums;color:var(--muted);font-size:12px}
+.presets{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:12px 0 2px}
+.presets span{font-size:13px;color:var(--muted)}
+.pill{border:1px solid var(--line);background:var(--surface);color:var(--ink);border-radius:99px;padding:7px 13px;font-weight:600;font-size:13px;cursor:pointer}
+.pill:hover{border-color:var(--accent);color:var(--accent)}
+.pill.primary{background:var(--ink);color:var(--bg);border-color:var(--ink)}
+
+/* paradas */
+section.stop{padding:26px 0 6px;scroll-margin-top:190px}
+.stophead{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px;margin-bottom:12px}
+.stophead h3{font-family:var(--display);font-size:26px;margin:0;line-height:1.1}
+.stophead .when{color:var(--muted)}
+.tag{font-size:11.5px;font-weight:600;border-radius:99px;padding:3px 9px;background:var(--line);color:var(--ink)}
+.tag.w1{background:var(--warn-soft);color:var(--warn)}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden;display:flex;flex-direction:column;box-shadow:var(--shadow);position:relative}
+.card.sel{border-color:var(--accent);box-shadow:0 0 0 2px var(--accent),var(--shadow)}
+.pics{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:2px;aspect-ratio:16/10;background:var(--line)}
+.pics img{width:100%;height:100%;object-fit:cover;display:block;min-width:0}
+.pics .nopic{display:grid;place-items:center;color:var(--muted);font-size:13px;background:repeating-linear-gradient(135deg,var(--line) 0 10px,transparent 10px 20px)}
+.badge{position:absolute;top:10px;left:10px;background:var(--accent);color:var(--accent-ink);font-weight:700;font-size:12px;border-radius:99px;padding:4px 10px}
+.who{position:absolute;top:10px;right:10px;background:rgba(15,20,30,.78);color:#fff;font-size:11.5px;font-weight:600;border-radius:99px;padding:4px 9px}
+.body{padding:12px 14px 14px;display:flex;flex-direction:column;gap:9px;flex:1}
+.body h4{margin:0;font-size:16.5px;line-height:1.2;font-weight:600;text-wrap:balance}
+.where{color:var(--muted);font-size:12.5px;margin-top:-4px}
+.price{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap}
+.price b{font-family:var(--display);font-size:23px;font-variant-numeric:tabular-nums;line-height:1}
+.price span{font-size:12.5px;color:var(--muted);font-variant-numeric:tabular-nums}
+.delta{font-size:12.5px;font-weight:600;font-variant-numeric:tabular-nums}
+.delta.up{color:var(--bad)}.delta.down{color:var(--good)}.delta.same{color:var(--muted)}
+.chips{display:flex;flex-wrap:wrap;gap:5px}
+.chip{font-size:11.5px;border-radius:6px;padding:2px 7px;background:var(--bg);border:1px solid var(--line)}
+.chip.star{background:var(--good-soft);border-color:transparent;color:var(--good);font-weight:600}
+.chip.alert{background:var(--warn-soft);border-color:transparent;color:var(--warn);font-weight:600}
+ul.pc{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:4px;font-size:13px}
+ul.pc li{display:grid;grid-template-columns:16px 1fr;gap:6px}
+ul.pc li::before{font-weight:700}
+ul.pc li.pro::before{content:"+";color:var(--good)}
+ul.pc li.con::before{content:"–";color:var(--bad)}
+.foot{margin-top:auto;display:flex;flex-wrap:wrap;gap:8px 12px;align-items:center;justify-content:space-between;padding-top:4px}
+.links{display:flex;flex-wrap:wrap;gap:4px 12px;font-size:13px}
+a{color:var(--accent)}
+.choose{border:1px solid var(--ink);background:transparent;color:var(--ink);font-weight:600;border-radius:9px;padding:8px 14px;cursor:pointer;font-size:13.5px}
+.choose:hover{background:var(--ink);color:var(--bg)}
+.card.sel .choose{background:var(--accent);border-color:var(--accent);color:var(--accent-ink);cursor:default}
+.manual{display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.manual input{width:110px;padding:6px 8px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-weight:600}
+
+/* traslados */
+.moves{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
+.moves .row{display:grid;grid-template-columns:26px 1fr auto;gap:10px;align-items:center;padding:9px 14px;border-top:1px solid var(--line)}
+.moves .row:first-child{border-top:0}
+.moves .row.off{color:var(--muted)}
+.moves .row small.src{margin-top:3px}.moves .row small.src a{color:var(--accent)}
+.moves .row small{display:block;color:var(--muted);font-size:12px}
+.moves .amt{font-variant-numeric:tabular-nums;font-weight:600;text-align:right;white-space:nowrap}
+.moves select{max-width:100%;padding:5px 7px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-size:13px;margin-top:3px}
+.moves input[type=checkbox]{width:17px;height:17px;accent-color:var(--accent)}
+.grouphead{padding:9px 14px;background:var(--bg);font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);border-top:1px solid var(--line)}
+.grouphead:first-child{border-top:0}
+.share{margin:26px 0 10px;background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:14px}
+.share pre{white-space:pre-wrap;font:13px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace;margin:10px 0 0;background:var(--bg);border-radius:10px;padding:12px;overflow-x:auto}
+.notes{color:var(--muted);font-size:13px;padding:10px 0 40px;max-width:80ch}
+.notes li{margin:3px 0}
+@media (max-width:640px){
+  .tiles{gap:8px}
+  .tile{padding:9px 10px}
+  .tile h2{font-size:10.5px}
+  .big span,.legend{display:none}
+  .left{font-size:11.5px}
+  section.stop{scroll-margin-top:170px}
+  .big b{font-size:22px}
+}
+
+.badge.rec{background:var(--ink);color:var(--bg)}
+.pill.on{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stopnote{margin:-4px 0 14px;color:var(--muted);max-width:80ch}
+.hid{color:var(--muted);font-size:13px;margin:10px 0 0}
+.pcbox{border-radius:10px;padding:8px 10px 9px;font-size:13px}
+.pcbox h5{margin:0 0 4px;font:700 11px var(--body);text-transform:uppercase;letter-spacing:.07em}
+.pcbox ul{margin:0;padding:0;list-style:none;display:flex;flex-direction:column;gap:3px}
+.pcbox li{display:grid;grid-template-columns:14px 1fr;gap:5px}
+.pcbox li::before{font-weight:700}
+.pcbox.pro{background:var(--good-soft)}.pcbox.pro h5{color:var(--good)}.pcbox.pro li::before{content:"+";color:var(--good)}
+.pcbox.con{background:var(--warn-soft)}.pcbox.con h5{color:var(--warn)}.pcbox.con li::before{content:"–";color:var(--warn)}
+.base{margin:18px 0 10px}.base:first-of-type{margin-top:0}.base h4{font-family:var(--display);font-size:18px;margin:0}.base p{margin:2px 0 0;color:var(--muted);max-width:80ch;font-size:13.5px}
+.card.nofit{opacity:.6}
+section.stop.away .cards,section.stop.away .ymap,section.stop.away .base{opacity:.45}
+#gbtn{display:inline-flex;color-scheme:light;border-radius:99px;overflow:hidden;height:32px;vertical-align:middle}#gbtn iframe{color-scheme:light}
+.chip.mine{background:var(--accent-soft);border-color:transparent;color:var(--accent);font-weight:600}.chip.votes{background:var(--ink);color:var(--bg);border-color:transparent;font-weight:600}.choose.vote.on{background:var(--good);border-color:var(--good);color:#fff}
+.vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}.vq h5{margin:0 0 5px;font:600 13px var(--body)}.vo{position:relative;display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:4px 8px;border-radius:6px;overflow:hidden;margin-top:3px;background:var(--bg)}.vo span,.vo b{position:relative;z-index:1}.vo i{position:absolute;inset:0 auto 0 0;background:var(--line)}.vo.win i{background:var(--accent-soft)}.vo.win{font-weight:600}
+details.adj{align-self:flex-end}details.adj summary{cursor:pointer;font-weight:600;font-size:13px;color:var(--muted);list-style:none;border:2px solid var(--line);border-radius:99px;padding:6px 13px;display:inline-block}details.adj[open] summary{margin-bottom:10px}
+.fixed{font-size:13px;color:var(--muted);align-self:center;max-width:26ch}
+
+/* ===== refresh: más joven, más aire ===== */
+:root{ --bg:#fbf7f0; --surface:#ffffff; --ink:#17132b; --muted:#6b6880; --line:#ebe4d8; --accent:#6c3bff; --accent-ink:#ffffff; --accent-soft:#ece5ff; --good:#0a9d6e; --good-soft:#dcf7ec; --warn:#c2410c; --warn-soft:#ffeadd; --bad:#e11d48; --pop:#ff4d6d; --lime:#c6f432; --shadow:0 2px 0 rgba(23,19,43,.04),0 14px 30px -12px rgba(23,19,43,.18); }
+@media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#100d1f; --surface:#1a1630; --ink:#f4f1ff; --muted:#a29dbd; --line:#2b2647; --accent:#a78bff; --accent-ink:#140d2e; --accent-soft:#2a2152; --good:#4ade80; --good-soft:#12301f; --warn:#fb923c; --warn-soft:#3a2010; --bad:#fb7185; --shadow:0 12px 30px -14px rgba(0,0,0,.7); } }
+:root[data-theme="dark"]{ --bg:#100d1f; --surface:#1a1630; --ink:#f4f1ff; --muted:#a29dbd; --line:#2b2647; --accent:#a78bff; --accent-ink:#140d2e; --accent-soft:#2a2152; --good:#4ade80; --good-soft:#12301f; --warn:#fb923c; --warn-soft:#3a2010; --bad:#fb7185; --shadow:0 12px 30px -14px rgba(0,0,0,.7); }
+body{font-size:15.5px}
+.aguayo{height:10px;background:linear-gradient(90deg,#6c3bff,#ff4d6d,#ffb703,#c6f432,#00c2ff,#6c3bff);background-size:200% 100%;animation:slide 12s linear infinite}
+@keyframes slide{to{background-position:200% 0}}
+h1{font-size:clamp(34px,6vw,60px);letter-spacing:-.02em;display:inline-block;padding:0 .08em .05em;margin-left:-.08em;background:linear-gradient(100deg,var(--accent),var(--pop) 60%,#ffb703);-webkit-background-clip:text;background-clip:text;color:transparent}
+h1 .wave{display:inline-block;-webkit-text-fill-color:initial;color:initial;animation:wob 2.4s ease-in-out infinite;transform-origin:50% 90%}
+@keyframes wob{0%,100%{transform:rotate(-6deg)}50%{transform:rotate(8deg) translateY(-3px)}}
+.sub{font-size:17px}
+.field input{border-radius:12px;border-width:2px}
+.tile{border-radius:22px;border:0;padding:16px 18px}
+.tile.second{background:var(--accent-soft)}
+.big b{font-size:clamp(30px,4.6vw,46px);animation:pop .4s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.86)}to{transform:scale(1)}}
+.meter{height:12px}.meter .m-fly{background:#00c2ff}.meter .m-move{background:#ffb703}
+.legend i[style*="1c6fa8"]{background:#00c2ff!important}.legend i[style*="f2b632"]{background:#ffb703!important}
+.pill{border-width:2px;padding:8px 15px;transition:transform .15s,background .15s}
+.pill:hover{transform:translateY(-2px) rotate(-1deg)}
+.pill.primary{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.stopchip{border-radius:16px;border-width:2px;transition:transform .15s}
+.stopchip:hover{transform:translateY(-3px)}
+.stophead h3{font-size:clamp(28px,4vw,40px);letter-spacing:-.02em}
+.stopnote{font-size:16px}
+.tag{background:var(--lime);color:#17132b}.tag.w1{background:var(--lime);color:#17132b}
+.cards{gap:18px}
+.card{border-radius:22px;border:0;transition:transform .2s cubic-bezier(.2,1.4,.4,1),box-shadow .2s}
+.card:hover{transform:translateY(-6px) rotate(-.4deg)}
+.card.sel{box-shadow:0 0 0 3px var(--accent),var(--shadow)}
+body.boot .card{animation:rise .5s both;animation-delay:calc(var(--i)*60ms)}
+@keyframes rise{from{opacity:0;transform:translateY(22px) scale(.97)}}
+.pics{aspect-ratio:16/10;overflow:hidden}.pics img{transition:transform .5s}.card:hover .pics img{transform:scale(1.06)}
+.badge{background:var(--pop);color:#fff}.badge.rec{background:var(--ink);color:var(--bg)}
+.body h4{font-size:18px}.price b{font-size:27px}
+.chip{border-radius:99px;padding:3px 9px}
+.pcbox{border-radius:14px}
+.more{font-size:13px;color:var(--muted)}.more summary{cursor:pointer;font-weight:600}.more ul{margin:6px 0 0;padding-left:16px;display:grid;gap:2px}
+.choose{border-radius:99px;border-width:2px;transition:transform .12s}.choose:active{transform:scale(.94)}
+.choose.vote{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}.choose.vote.on{background:var(--good);border-color:var(--good);color:#fff}
+.moves,.share{border-radius:22px;border:0;box-shadow:var(--shadow)}
+.ymap{background:var(--good-soft);border-radius:18px;padding:14px 16px;margin:0 0 16px}.ymap p{margin:0 0 10px}.ymap .hid{margin:8px 0 0}
+.yline{display:flex;align-items:center;gap:6px;overflow-x:auto;padding:4px 0}
+.yline span{flex:none;background:var(--surface);border-radius:99px;padding:6px 12px;font-weight:600;font-size:13.5px;text-align:center}
+.yline span.here{background:var(--good);color:#fff;animation:pulse 1.8s ease-in-out infinite}.yline small{display:block;font-weight:500;font-size:11px;opacity:.9}
+.yline i{flex:1 0 34px;font-style:normal;font-size:11.5px;color:var(--muted);text-align:center;border-bottom:2px dashed var(--good);padding-bottom:2px}
+@keyframes pulse{50%{transform:scale(1.06)}}
+/* easter egg */
+.egg{position:absolute;inset:0 0 auto 0;aspect-ratio:16/10;z-index:3;display:grid;place-content:center;gap:4px;text-align:center;color:#fff;background:repeating-linear-gradient(180deg,#c60b1e 0 25%,#ffc400 25% 75%,#c60b1e 75% 100%);opacity:0;transform:translateY(-100%);transition:transform .45s cubic-bezier(.2,1.5,.4,1),opacity .2s;pointer-events:none;border-radius:22px 22px 0 0}
+.egg b{font-family:var(--display);font-size:19px;line-height:1.1;color:#17132b;background:#fff;padding:6px 12px;border-radius:10px;transform:rotate(-3deg);box-shadow:0 4px 0 rgba(0,0,0,.25)}
+.egg em{font-style:normal;font-weight:800;letter-spacing:.2em;color:#fff;text-shadow:0 2px 0 #17132b}
+.egg .ball{font-size:30px;animation:bounce .55s cubic-bezier(.3,0,.7,1) infinite alternate}
+@keyframes bounce{to{transform:translateY(-16px) rotate(180deg)}}
+.card:hover .egg,.card:focus-within .egg{opacity:1;transform:none}
+@media (hover:none){ .card[data-k="residencial-espana"] .egg{animation:peek 6s 1.5s ease-in-out infinite} @keyframes peek{0%,55%,100%{opacity:0;transform:translateY(-100%)}62%,92%{opacity:1;transform:none}} }
+.pop{position:fixed;z-index:99;pointer-events:none;font-size:22px;animation:fly .9s cubic-bezier(.2,.7,.3,1) forwards}
+@keyframes fly{to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
+#llama{position:fixed;bottom:10px;left:calc(8px + var(--p,0)*(100vw - 60px));z-index:30;font-size:30px;background:none;border:0;cursor:pointer;padding:4px;transition:left .15s linear;animation:walk .5s steps(2) infinite;transform:scaleX(-1)}
+@keyframes walk{50%{translate:0 -4px}}
+@media (prefers-reduced-motion: reduce){ .aguayo,h1 .wave,.yline span.here,#llama,.egg .ball,.big b,body.boot .card{animation:none!important} .card:hover,.pill:hover,.stopchip:hover{transform:none} }
+@media (max-width:640px){ .big b{font-size:26px} h1{font-size:36px} }
+
+.gg{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:14px}
+.gi{background:var(--surface);border-radius:20px;padding:14px 16px;box-shadow:var(--shadow);display:flex;flex-direction:column;gap:6px;transition:transform .2s cubic-bezier(.2,1.4,.4,1)}
+.gi:hover{transform:translateY(-5px) rotate(-.5deg)}
+.gi h4{margin:0;font-size:17px;line-height:1.2}.gi p{margin:0;font-size:14px;color:var(--muted)}
+.gt{font-size:11.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;align-self:flex-start;border-radius:99px;padding:3px 9px;background:var(--accent-soft);color:var(--accent)}
+.k-noche .gt{background:var(--ink);color:var(--bg)}.k-tip .gt{background:var(--warn-soft);color:var(--warn)}.k-comer .gt,.k-tomar .gt{background:var(--good-soft);color:var(--good)}
+.gi small.src{margin-top:auto;padding-top:4px;font-size:12px;color:var(--muted)}.gi small.src a{color:var(--accent)}
+.navtop{display:flex;flex-wrap:wrap;gap:8px;align-items:center;padding:6px 0 0}
+.route a.stopchip{text-decoration:none;flex:1 0 140px}
+.gi[hidden]{display:none}
+</style>
+</head>
+<body>
+<div class="aguayo" aria-hidden="true"></div>
+<div class="wrap">
+  <header class="top">
+    <div>
+      <h1>Qué hacer <span class="wave" aria-hidden="true">🦙</span></h1>
+      <p class="sub">Planes, comida y noche en cada parada. Norte 2027.</p>
+    </div>
+    <a class="pill primary" href="./" style="text-decoration:none">← Votar dónde dormimos</a>
+  </header>
+  <div class="presets"><span>Ver solo:</span><button class="pill" type="button" data-t="hacer">🥾 Para hacer</button><button class="pill" type="button" data-t="comer">🫔 Para comer</button><button class="pill" type="button" data-t="tomar">🍷 Para tomar</button><button class="pill" type="button" data-t="noche">🪩 De noche</button><button class="pill" type="button" data-t="tip">💡 Ojo</button></div>
+  <nav class="route" aria-label="Paradas"><a class="stopchip" href="#g-salta"><strong>Salta</strong><small>16 → 17/1 · una noche</small></a><a class="stopchip" href="#g-cafayate"><strong>Cafayate</strong><small>17 → 20/1 · tres noches</small></a><a class="stopchip" href="#g-yungas"><strong>Yungas (Calilegua)</strong><small>20 → 23/1 · tres noches</small></a><a class="stopchip" href="#g-tilcara"><strong>Tilcara y la Quebrada</strong><small>23 → 28/1 · cinco noches</small></a><a class="stopchip" href="#g-iruya"><strong>Iruya</strong><small>28 → 30/1 · dos noches</small></a><a class="stopchip" href="#g-jujuy"><strong>Jujuy</strong><small>30 → 31/1 · última noche</small></a></nav>
+  <main><section class="stop" id="g-salta"><div class="stophead"><h3>Salta</h3><span class="when">16 → 17/1 · una noche</span></div><p class="stopnote">Llegamos un sábado: la Balcarce va a estar a full.</p><div class="gg"><article class="gi k-noche" data-t="noche"><span class="gt">🪩 De noche</span><h4>La Balcarce</h4><p>Más de 80 bares, peñas y boliches en pocas cuadras. De jueves a sábado es cuando más explota.</p><small class="src">Fuente: <a href="https://infonegocios.info/conosur/paseos-balcarce-la-calle-que-no-duerme" target="_blank" rel="noopener">InfoNegocios ↗</a></small></article><article class="gi k-noche" data-t="noche"><span class="gt">🪩 De noche</span><h4>Peña de verdad: La Casona del Molino</h4><p>La que recomiendan los salteños: guitarreada espontánea y empanadas. Queda lejos del centro, 10-15 min en taxi.</p><small class="src">Fuente: <a href="https://www.lanacion.com.ar/revista-lugares/salta-donde-comer-las-mejores-empanadas-nid06012022/" target="_blank" rel="noopener">La Nación ↗</a></small></article><article class="gi k-noche" data-t="noche"><span class="gt">🪩 De noche</span><h4>Peñas en la Balcarce</h4><p>Para ir caminando de una a otra: La Vieja Estación, El Patio de la Balcarce, El Viejo Vizcacha, La Cacharpaya.</p><small class="src">Fuente: <a href="https://infonegocios.info/conosur/paseos-balcarce-la-calle-que-no-duerme" target="_blank" rel="noopener">InfoNegocios ↗</a></small></article><article class="gi k-hacer" data-t="hacer"><span class="gt">🥾 Para hacer</span><h4>Cerro San Bernardo</h4><p>Teleférico desde el Parque San Martín, o subir por la escalinata y bajar en teleférico. La mejor vista de la ciudad.</p><small class="src">Fuente: <a href="https://www.hostelworld.com/blog/?p=1306095" target="_blank" rel="noopener">Hostelworld ↗</a></small></article><article class="gi k-hacer" data-t="hacer"><span class="gt">🥾 Para hacer</span><h4>Caminar el centro</h4><p>Plaza 9 de Julio, Catedral y Cabildo: todo queda a pocas cuadras.</p><small class="src">Fuente: <a href="https://www.hostelworld.com/blog/?p=1306095" target="_blank" rel="noopener">Hostelworld ↗</a></small></article><article class="gi k-comer" data-t="comer"><span class="gt">🫔 Para comer</span><h4>Empanadas salteñas</h4><p>La Tacita: horno de barro y las arman a la vista.</p><small class="src">Fuente: <a href="https://www.airbnb.com/salta-argentina/travel-guide" target="_blank" rel="noopener">Guía de Airbnb ↗</a></small></article><article class="gi k-comer" data-t="comer"><span class="gt">🫔 Para comer</span><h4>Barato y típico: Mercado San Miguel</h4><p>Locro, humita y tamales bastante más baratos que en los restaurantes turísticos.</p><small class="src">Fuente: <a href="https://dicasargentina.com/?p=27" target="_blank" rel="noopener">Dicas Argentina ↗</a></small></article><article class="gi k-tip" data-t="tip"><span class="gt">💡 Ojo</span><h4>Domingo a la mañana</h4><p>Feria de artesanos sobre la Balcarce, por si queda tiempo antes del micro a Cafayate.</p><small class="src">Fuente: <a href="https://infonegocios.info/conosur/paseos-balcarce-la-calle-que-no-duerme" target="_blank" rel="noopener">InfoNegocios ↗</a></small></article></div></section><section class="stop" id="g-cafayate"><div class="stophead"><h3>Cafayate</h3><span class="when">17 → 20/1 · tres noches</span></div><p class="stopnote">Vino, bici y quebrada.</p><div class="gg"><article class="gi k-hacer" data-t="hacer"><span class="gt">🥾 Para hacer</span><h4>Quebrada de las Conchas</h4><p>El plato fuerte: Garganta del Diablo y el Anfiteatro, sobre la ruta 68, a unos 50 km.</p><small class="src">Fuente: <a href="https://www.turismocity.com.ar/promociones_aereas/p-las_mejores_cosas_que_hacer_en_cafayate-8063.html" target="_blank" rel="noopener">Turismocity ↗</a></small></article><article class="gi k-hacer" data-t="hacer"><span class="gt">🥾 Para hacer</span><h4>La quebrada en bici</h4><p>Los micros Cafayate–Salta llevan bicis y paran donde pidas: bajarse en la Garganta del Diablo y volver pedaleando.</p><small class="src">Fuente: <a href="https://www.360meridianos.com/dica/cafayate-e-quebrada-das-conchas-na-argentina" target="_blank" rel="noopener">360 Meridianos ↗</a></small></article><article class="gi k-hacer" data-t="hacer"><span class="gt">🥾 Para hacer</span><h4>Cascadas del Río Colorado</h4><p>Caminata con cascadas y ollas para meterse. El cronograma la marca como trekking con guía.</p><small class="src">Fuente: <a href="https://www.turismocity.com.ar/promociones_aereas/p-las_mejores_cosas_que_hacer_en_cafayate-8063.html" target="_blank" rel="noopener">Turismocity ↗</a></small></article><article class="gi k-tomar" data-t="tomar"><span class="gt">🍷 Para tomar</span><h4>Bodegas</h4><p>Vasija Secreta (la más antigua) y El Esteco están en el plan del grupo. Varias ofrecen visita con degustación; consultar precio, porque los datos de &quot;gratis&quot; que circulan son viejos.</p><small class="src">Fuente: <a href="https://www.losviajeros.com/Blogs.php?e=56323" target="_blank" rel="noopener">Los Viajeros ↗</a></small></article><article class="gi k-tomar" data-t="tomar"><span class="gt">🍷 Para tomar</span><h4>Torrontés</h4><p>El blanco de la zona. Es lo que hay que pedir.</p><small class="src">Fuente: <a href="https://www.winetourism.com/es/denominacion-de-origen/cafayate/" target="_blank" rel="noopener">Winetourism ↗</a></small></article><article class="gi k-comer" data-t="comer"><span class="gt">🫔 Para comer</span><h4>Helado de vino</h4><p>Las heladerías del pueblo tienen de malbec, cabernet y torrontés.</p><small class="src">Fuente: <a href="https://www.winetourism.com/es/denominacion-de-origen/cafayate/" target="_blank" rel="noopener">Winetourism ↗</a></small></article><article class="gi k-hacer" data-t="hacer"><span class="gt">🥾 Para hacer</span><h4>Museo de la Vid y el Vino</h4><p>Interactivo y corto. Buen plan si llueve.</p><small class="src">Fuente: <a href="https://welcomeargentina.com/cafayate" target="_blank" rel="noopener">Welcome Argentina ↗</a></small></article><article class="gi k-tip" data-t="tip"><span class="gt">💡 Ojo</span><h4>Lado izquierdo del micro</h4><p>Viniendo de Salta, sentarse a la izquierda para ver la quebrada.</p><small class="src">Cronograma del grupo</small></article></div></section><section class="stop" id="g-yungas"><div class="stophead"><h3>Yungas (Calilegua)</h3><span class="when">20 → 23/1 · tres noches</span></div><p class="stopnote">Selva, termas y cero señal.</p><div class="gg"><article class="gi k-hacer" data-t="hacer"><span class="gt">🥾 Para hacer</span><h4>Parque Nacional Calilegua</h4><p>Entrada gratis, abierto de 8 a 18. Hay que registrarse en el Centro de Visitantes de Aguas Negras.</p><small class="src">Fuente: <a href="https://www.argentina.gob.ar/parquesnacionales/calilegua" target="_blank" rel="noopener">Parques Nacionales ↗</a></small></article><article class="gi k-hacer" data-t="hacer"><span class="gt">🥾 Para hacer</span><h4>Termas del Río Jordán</h4><p>Pozas turquesas en medio de la selva. Se sale caminando desde San Francisco, bajando unos 700 m.</p><small class="src">Fuente: <a href="https://www.civitatis.com/ar/san-salvador-de-jujuy/trekking-termas-jordan/" target="_blank" rel="noopener">Civitatis ↗</a></small></article><article class="gi k-tip" data-t="tip"><span class="gt">💡 Ojo</span><h4>Guía obligatorio a las termas</h4><p>No se puede ir por la libre. La última salida con guía es a las 14 h: ir a la mañana.</p><small class="src">Fuente: <a href="https://www.todojujuy.com/jujuy/como-llegar-san-francisco-y-las-termas-jordan-n206647" target="_blank" rel="noopener">Todo Jujuy ↗</a></small></article><article class="gi k-hacer" data-t="hacer"><span class="gt">🥾 Para hacer</span><h4>Fuente del Jaguar</h4><p>Cascada que sale de la roca, unas 3 horas de trekking desde San Francisco, también con guía.</p><small class="src">Fuente: <a href="https://www.c5n.com/lifestyle/vacaciones-jujuy-2025-la-impactante-cascada-que-sale-las-rocas-n196414/amp" target="_blank" rel="noopener">C5N ↗</a></small></article><article class="gi k-tip" data-t="tip"><span class="gt">💡 Ojo</span><h4>Un solo colectivo por día</h4><p>Sale de la terminal de Libertador a las 8:00 hacia San Francisco, pasa por el parque y vuelve a la tarde. Si se pierde, no hay otro.</p><small class="src">Fuente: <a href="https://www.argentina.gob.ar/parquesnacionales/calilegua/como-llegar" target="_blank" rel="noopener">Parques Nacionales ↗</a></small></article><article class="gi k-tip" data-t="tip"><span class="gt">💡 Ojo</span><h4>Plata</h4><p>Según Parques Nacionales hay cajeros en Calilegua, Libertador y San Francisco. Igual conviene subir con efectivo.</p><small class="src">Fuente: <a href="https://www.argentina.gob.ar/node/439659" target="_blank" rel="noopener">Parques Nacionales ↗</a></small></article><article class="gi k-tip" data-t="tip"><span class="gt">💡 Ojo</span><h4>Enero es época de lluvias</h4><p>Los senderos pueden cerrar y el camino a San Francisco es de ripio. Tener un plan B por día.</p><small class="src">Fuente: <a href="https://www.iprofesional.com/turismo/370800-un-recorrido-imperdible-por-la-quebrada-de-humahuaca" target="_blank" rel="noopener">iProfesional ↗</a></small></article></div></section><section class="stop" id="g-tilcara"><div class="stophead"><h3>Tilcara y la Quebrada</h3><span class="when">23 → 28/1 · cinco noches</span></div><p class="stopnote">La base. Acá está la joda del viaje.</p><div class="gg"><article class="gi k-noche" data-t="noche"><span class="gt">🪩 De noche</span><h4>Enero Tilcareño</h4><p>El festival del pueblo: en 2026 fue del 3 de enero al 1 de febrero, con festivales y actividades todo el mes. Las fechas de 2027 todavía no las encontré, pero caemos justo.</p><small class="src">Fuente: <a href="https://www.todojujuy.com/el-lanzamiento-oficial-del-enero-tilcareno-2026-ya-tiene-fecha-n283496" target="_blank" rel="noopener">Todo Jujuy ↗</a></small></article><article class="gi k-noche" data-t="noche"><span class="gt">🪩 De noche</span><h4>Peñas</h4><p>Cena con folclore en vivo, el plan de todas las noches en Tilcara.</p><small class="src">Fuente: <a href="https://www.todojujuy.com/pais/ni-salta-ni-chaco-tus-escapadas-deben-ser-este-pueblo-repleto-actividades-hacer-n278117/amp" target="_blank" rel="noopener">Todo Jujuy ↗</a></small></article><article class="gi k-hacer" data-t="hacer"><span class="gt">🥾 Para hacer</span><h4>Pucará de Tilcara</h4><p>Fortaleza prehispánica en un cerro, con jardín botánico de altura. Se va caminando.</p><small class="src">Fuente: <a href="https://www.argentina.travel/actividades/tilcara" target="_blank" rel="noopener">Visit Argentina ↗</a></small></article><article class="gi k-hacer" data-t="hacer"><span class="gt">🥾 Para hacer</span><h4>Garganta del Diablo</h4><p>Trekking por un cañón hasta una cascada. Ojo si llovió fuerte el día anterior.</p><small class="src">Fuente: <a href="https://www.notife.com/tilcara-alegre-magica-y-espiritual" target="_blank" rel="noopener">Notife ↗</a></small></article><article class="gi k-hacer" data-t="hacer"><span class="gt">🥾 Para hacer</span><h4>Purmamarca: Paseo de los Colorados</h4><p>Vuelta de 3 km detrás del Cerro de los Siete Colores. Gratis.</p><small class="src">Fuente: <a href="https://promociones-aereas.com.ar/relato/que-hacer-en-la-quebrada-de-humahuaca-c" target="_blank" rel="noopener">Promos Aéreas ↗</a></small></article><article class="gi k-hacer" data-t="hacer"><span class="gt">🥾 Para hacer</span><h4>Purmamarca: mirador El Porito</h4><p>Subida corta con vista al Siete Colores.</p><small class="src">Fuente: <a href="https://www.welcomeargentina.com/purmamarca/paseos.html" target="_blank" rel="noopener">Welcome Argentina ↗</a></small></article><article class="gi k-hacer" data-t="hacer"><span class="gt">🥾 Para hacer</span><h4>Maimará</h4><p>Paleta del Pintor y el cementerio de colores, a 10 minutos en colectivo.</p><small class="src">Fuente: <a href="https://www.argentina.travel/pt/actividades/maimara" target="_blank" rel="noopener">Visit Argentina ↗</a></small></article><article class="gi k-tomar" data-t="tomar"><span class="gt">🍷 Para tomar</span><h4>Bodega en Maimará</h4><p>Bodega Dupont: vino de altura hecho en la Quebrada.</p><small class="src">Fuente: <a href="https://www.argentina.travel/pt/actividades/maimara" target="_blank" rel="noopener">Visit Argentina ↗</a></small></article><article class="gi k-hacer" data-t="hacer"><span class="gt">🥾 Para hacer</span><h4>Uquía</h4><p>La iglesia de los ángeles arcabuceros y el cerro de las Señoritas, camino a Humahuaca.</p><small class="src">Fuente: <a href="https://www.lanacion.com.ar/otros/secretos-de-la-quebrada-nid20102013/" target="_blank" rel="noopener">La Nación ↗</a></small></article><article class="gi k-hacer" data-t="hacer"><span class="gt">🥾 Para hacer</span><h4>Salinas Grandes y Hornocal</h4><p>Las dos excursiones grandes. Precios y opciones en la página principal, en Traslados.</p></article><article class="gi k-tip" data-t="tip"><span class="gt">💡 Ojo</span><h4>Lluvias</h4><p>En verano llueve y a veces complica los caminos. Dejar las excursiones largas para los primeros días, por si hay que mover alguna.</p><small class="src">Fuente: <a href="https://www.iprofesional.com/turismo/370800-un-recorrido-imperdible-por-la-quebrada-de-humahuaca" target="_blank" rel="noopener">iProfesional ↗</a></small></article></div></section><section class="stop" id="g-iruya"><div class="stophead"><h3>Iruya</h3><span class="when">28 → 30/1 · dos noches</span></div><p class="stopnote">Bajar un cambio. Acá no hay boliche ni señal.</p><div class="gg"><article class="gi k-hacer" data-t="hacer"><span class="gt">🥾 Para hacer</span><h4>Mirador de la Cruz</h4><p>Menos de media hora de subida desde la iglesia. De noche la cruz se ilumina y se ve todo el pueblo.</p><small class="src">Fuente: <a href="https://www.cadena3.com/noticia/argentina/iruya-conquista-desde-las-alturas_315266" target="_blank" rel="noopener">Cadena 3 ↗</a></small></article><article class="gi k-hacer" data-t="hacer"><span class="gt">🥾 Para hacer</span><h4>Mirador del Cóndor</h4><p>Más empinado y con piedra suelta, pero se ven cóndores. Mal señalizado: ir con guía o con tiempo.</p><small class="src">Fuente: <a href="https://www.cadena3.com/noticia/argentina/iruya-conquista-desde-las-alturas_315266" target="_blank" rel="noopener">Cadena 3 ↗</a></small></article><article class="gi k-hacer" data-t="hacer"><span class="gt">🥾 Para hacer</span><h4>Trekking a San Isidro</h4><p>Unos 8 km por el lecho del río, cerca de 3 horas de ida. El clásico de Iruya.</p><small class="src">Fuente: <a href="https://www.argentina.travel/actividades/iruya" target="_blank" rel="noopener">Visit Argentina ↗</a></small></article><article class="gi k-tip" data-t="tip"><span class="gt">💡 Ojo</span><h4>El río en enero</h4><p>Es época de lluvias y el río crece. Preguntar a la gente del pueblo antes de salir, y si dicen que no, es no.</p><small class="src">Fuente: <a href="https://it.wikiloc.com/percorsi/escursionismo/argentina/salta/iruya" target="_blank" rel="noopener">Wikiloc ↗</a></small></article><article class="gi k-hacer" data-t="hacer"><span class="gt">🥾 Para hacer</span><h4>El pueblo</h4><p>Iglesia amarilla de 1690, calles empedradas y el puente colgante sobre el río.</p><small class="src">Fuente: <a href="https://www.cronista.com/clase/break/es-uno-de-los-pueblos-mas-hermosos-del-mundo-esta-en-argentina-y-tiene-1500-habitantes" target="_blank" rel="noopener">El Cronista ↗</a></small></article><article class="gi k-comer" data-t="comer"><span class="gt">🫔 Para comer</span><h4>Tamales</h4><p>Lo que hay que probar acá.</p><small class="src">Fuente: <a href="https://www.c5n.com/lifestyle/descubriendo-salta-el-pueblo-colgado-la-montana-el-que-tiene-rios-llamas-y-nada-senal-n235829/amp" target="_blank" rel="noopener">C5N ↗</a></small></article><article class="gi k-tip" data-t="tip"><span class="gt">💡 Ojo</span><h4>Efectivo y batería</h4><p>Casi no hay señal. Llevar plata en mano y avisar en casa antes de subir.</p><small class="src">Fuente: <a href="https://www.c5n.com/lifestyle/descubriendo-salta-el-pueblo-colgado-la-montana-el-que-tiene-rios-llamas-y-nada-senal-n235829/amp" target="_blank" rel="noopener">C5N ↗</a></small></article><article class="gi k-tip" data-t="tip"><span class="gt">💡 Ojo</span><h4>El camino</h4><p>Ripio de montaña hasta 4.000 m en el Abra del Cóndor. Con lluvia se complica: comprar el pasaje el día anterior y no dejar la bajada para último momento.</p><small class="src">Fuente: <a href="https://www.minutouno.com/lifestyle/salta-imperdible-el-pueblo-rodeado-rios-colgado-las-montanas-y-pocos-habitantes-n6154819" target="_blank" rel="noopener">MinutoUno ↗</a></small></article></div></section><section class="stop" id="g-jujuy"><div class="stophead"><h3>Jujuy</h3><span class="when">30 → 31/1 · última noche</span></div><p class="stopnote">Cierre y vuelo.</p><div class="gg"><article class="gi k-tip" data-t="tip"><span class="gt">💡 Ojo</span><h4>Día colchón</h4><p>El cronograma lo pensó así: margen por si la bajada de Iruya se demora, y última peña.</p><small class="src">Cronograma del grupo</small></article><article class="gi k-tip" data-t="tip"><span class="gt">💡 Ojo</span><h4>Sin investigar todavía</h4><p>De la ciudad no busqué qué hacer. Si quieren plan para esa noche, lo armo.</p></article></div></section></main>
+  <ul class="notes">
+    <li>Armado el 24/11/2026 con búsquedas en la web y el cronograma del grupo. Cada dato tiene su fuente; horarios y precios pueden haber cambiado.</li>
+    <li>No hay precios de entradas ni de comidas: no encontré valores actuales confiables.</li>
+    <li>Vamos en enero, que es temporada de lluvias en todo el norte: los planes al aire libre dependen del clima.</li>
+  </ul>
+</div>
+<script>
+const on=new Set();
+document.addEventListener("click",e=>{ const b=e.target.closest("button[data-t]"); if(!b) return; const t=b.dataset.t; on.has(t)?on.delete(t):on.add(t); b.classList.toggle("on",on.has(t)); b.setAttribute("aria-pressed",on.has(t));
+  document.querySelectorAll(".gi").forEach(g=>{ g.hidden=on.size>0&&!on.has(g.dataset.t); }); });
+</script>
+</body>
+</html>

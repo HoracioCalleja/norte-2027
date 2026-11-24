@@ -127,6 +127,7 @@ a{color:var(--accent)}
 .moves{background:var(--surface);border:1px solid var(--line);border-radius:16px;overflow:hidden}
 .moves .row{display:grid;grid-template-columns:26px 1fr auto;gap:10px;align-items:center;padding:9px 14px;border-top:1px solid var(--line)}
 .moves .row:first-child{border-top:0}
+.moves .row>div{min-width:0}.moves select{width:100%}.moves .row small{overflow-wrap:anywhere}
 .moves .row.off{color:var(--muted)}
 .moves .row small.src{margin-top:3px}.moves .row small.src a{color:var(--accent)}
 .moves .row small{display:block;color:var(--muted);font-size:12px}
@@ -240,7 +241,7 @@ body.boot .card{animation:rise .5s both;animation-delay:calc(var(--i)*60ms)}
 #llama{position:fixed;bottom:10px;left:calc(8px + var(--p,0)*(100vw - 60px));z-index:30;font-size:30px;background:none;border:0;cursor:pointer;padding:4px;transition:left .15s linear;animation:walk .5s steps(2) infinite;transform:scaleX(-1)}
 @keyframes walk{50%{translate:0 -4px}}
 @media (prefers-reduced-motion: reduce){ .aguayo,h1 .wave,.yline span.here,#llama,.egg .ball,.big b,body.boot .card{animation:none!important} .card:hover,.pill:hover,.stopchip:hover{transform:none} }
-@media (max-width:640px){ .big b{font-size:26px} h1{font-size:36px} }
+@media (max-width:640px){ .big b{font-size:26px} h1{font-size:36px} .left{display:none} .balance{padding:6px 0 8px} .tile{padding:10px 12px;border-radius:16px} .meter{margin-top:6px} }
 </style>
 </head>
 <body>
@@ -281,7 +282,7 @@ body.boot .card{animation:rise .5s both;animation-delay:calc(var(--i)*60ms)}
     <pre id="summary"></pre>
   </div>
   <ul class="notes">
-    <li>Alojamiento buscado el 24/11/2026 en Airbnb y Booking, con estas fechas y para 5 u 11 adultos. Para 6 y para 10 se usa el precio real cuando Airbnb lo dio, y si no un estimado, marcado en la tarjeta. Los precios cambian todos los días.</li>
+    <li>Alojamiento buscado el 24/11/2026 en Airbnb y Booking, con estas fechas y para 5 u 11 adultos. La primera semana se calcula para 6: se usa el precio real para 6 cuando Airbnb lo dio, y si no un estimado, marcado en la tarjeta (“Precio para 6 estimado”). “No entran 6” quiere decir que el lugar se buscó y no dio lugar para 6. Los precios cambian todos los días.</li>
     <li>Booking: la distancia es la que da Booking al centro del pueblo, y el precio incluye impuestos y cargos. Airbnb: la distancia está medida desde el punto del mapa del anuncio hasta la plaza principal; Airbnb corre ese punto unas cuadras, así que es aproximada.</li>
     <li>Vuelos buscados el 24/11/2026 en Google Flights, por tramo y para 1 adulto, con impuestos. Es la tarifa más baja de cada aerolínea: incluye solo mochila; carry-on y valija se pagan aparte. Flybondi no aparece en Google Flights y su sitio estaba caído al buscar. Traslados terrestres rebuscados el 24/11/2026: cada uno muestra su fuente. Los que dicen "a confirmar allá" no tienen precio publicado y suman $ 0.</li>
     <li>Dólar MEP a $ 1.700 (cierre del 23/11/2026: $ 1.701). Se puede cambiar arriba.</li>
@@ -373,7 +374,7 @@ function renderRoute(){
   $("#rhead").innerHTML=calc()?`<b>Tu viaje simulado${myTr()==="w2"?" · te sumás el 23/1":myTr()==="w1"?" · vas hasta el 23/1":""}</b><span>Lo que tenés elegido en cada parada y cuánto sale por persona toda la estadía. Tocá una parada para ir a sus opciones.</span>`:`<b>Cómo viene la votación</b><span>La opción que va ganando en cada parada. Tocá una parada para ir a votar.</span>`;
   $("#route").innerHTML = STOPS.map(s=>{ if(calc()){ const o=chosen(s); if(!goes(s)) return `<button class="stopchip off" type="button" data-go="${s.id}"><small>${s.when}</small><strong>${s.name}</strong><em>No vas a esta parada</em><span class="p">no se suma a tu viaje</span></button>`;
       return `<button class="stopchip" type="button" data-go="${s.id}"><small>${s.when} · ${nOf(s)} pers.</small><strong>${s.name}</strong><em>${esc(o.name)}</em><span class="p">${tot(s,o)==null?"sin precio":usd(pp(s,o))+" p/p la estadía"}</span></button>`; }
-    const v=vtop(s), n=v?vcount(s,v):0;
+    const v=vtop(s), n=v?vcount(s,v):0; const tie=v?OPT[s.id].filter(o=>vcount(s,o)===n).length:0; if(tie>1) return `<button class="stopchip" type="button" data-go="${s.id}"><small>${s.when}</small><strong>${s.name}</strong><em>Empate entre ${tie}</em><span class="p">${n} ${n===1?"voto":"votos"} cada una</span></button>`;
     return `<button class="stopchip" type="button" data-go="${s.id}"><small>${s.when}</small><strong>${s.name}</strong><em>${v?esc(v.name):"Sin votos todavía"}</em><span class="p">${v?`${n} ${n===1?"voto":"votos"}`:"Sé el primero"}</span></button>`; }).join(""); }
 const FILTERS=[["cap25","Hasta $ 25.000 por persona por noche",(o,s)=>pp(s,o)!=null&&pp(s,o)/s.nights<=25000],["cap40","Hasta $ 40.000 p/p por noche",(o,s)=>pp(s,o)!=null&&pp(s,o)/s.nights<=40000],["cap60","Hasta $ 60.000 p/p por noche",(o,s)=>pp(s,o)!=null&&pp(s,o)/s.nights<=60000],["tilc","Quebrada: solo Tilcara (sin Maimará ni Purmamarca)",(o,s)=>s.id!=="tilcara"||!/Maimará|Purmamarca/.test(o.sub)],["tog","Todos en un mismo lugar",o=>o.tog],["near","A 400 m o menos del centro",o=>o.near==="c"],["kit","Con cocina",o=>o.kit],["host","Hostels",o=>o.hostel]];
 const PRESETS=[["rec","Recomendadas","la que yo elegiría en cada parada, mirando precio, ubicación y reseñas"],["voted","Lo más votado","la opción con más votos del grupo en cada parada (donde nadie votó, queda la recomendada)"],["cheap","Lo más barato","la más barata de cada parada"],["together","Todos juntos","la más barata donde entramos todos en un mismo lugar, sin contar hostels"],["center","Céntrico","la más barata a 400 m o menos del centro"]];
@@ -413,7 +414,7 @@ function renderStops(){ CNT=[0,0]; const act=FILTERS.filter(f=>state.f[f[0]]);
       <p class="stopnote">${away?"No estás en esta parada. ":""}${esc(s.note)}</p>${body}${hidden?`<p class="hid">${hidden} ${hidden>1?"opciones ocultas":"opción oculta"} por los filtros.</p>`:""}</section>`; }).join(""); }
 function renderMoves(){ $("#moves").innerHTML = MOVES.map(m=>{ if(m.g) return `<div class="grouphead">${m.g}</div>`;
     const on=state.moves[m.id]; const who=m.who===1?`Solo los ${state.n1} de la primera semana`:m.who===2?"Solo los que se suman el 23/1":""; const alts=moveAlts(m);
-    const alt=alts?`<select id="alt-${m.id}" data-alt="${m.id}" aria-label="Opción para ${esc(m.name)}">${alts.map((a,i)=>`<option value="${i}" ${i==(state.alt[m.id]||0)?"selected":""}>${esc(a[0])} · ${fmt(a[1])} p/p</option>`).join("")}</select>`:"";
+    const alt=alts?`<select id="alt-${m.id}" data-alt="${m.id}" aria-label="Opción para ${esc(m.name)}">${alts.map((a,i)=>`<option value="${i}" ${i==(state.alt[m.id]||0)?"selected":""}>${esc(a[0])}${a[1]?` · ${fmt(a[1])} p/p`:" · no suma"}</option>`).join("")}</select>`:"";
     const note=[m.note,m.extraNote,who].filter(Boolean).join(" · "); const sa=alts?alts[Math.min(state.alt[m.id]||0,alts.length-1)]:null; const S=sa&&sa[2]?[sa[2],sa[3]]:(m.src||(m.link?["Google Flights, 24/11/2026",m.link]:null)); const srcH=S?`<small class="src">${S[1]?"Fuente: ":""}${S[1]?`<a href="${S[1]}" target="_blank" rel="noopener">${esc(S[0])} ↗</a>`:esc(S[0])}</small>`:"";
     return `<div class="row ${on?"":"off"}"><input type="checkbox" id="mv-${m.id}" data-move="${m.id}" ${on?"checked":""} aria-label="Incluir ${esc(m.name)}">
       <div><label for="mv-${m.id}">${esc(m.name)}</label>${note?`<small>${esc(note)}</small>`:""}${alt}${srcH}</div>
@@ -436,14 +437,14 @@ async function loadVotes(){ const box=$("#votos"); if(!SHEET_ID){ box.hidden=tru
     const ni=H.findIndex(t=>/nombre o apodo/i.test(t));
     const seen={}; all.forEach((r,i)=>{ const k=(ni>=0&&(r[ni]||"").trim().toLowerCase())||"#"+i; seen[k]=r; }); const rows=Object.values(seen); const dup=all.length-rows.length;
     VOTES={n:rows.length,dup,q:[],H,rows,ni,names:ni<0?[]:[...new Set(rows.map(r=>(r[ni]||"").trim()).filter(Boolean))]};
-    H.forEach((title,i)=>{ if(i===0||i===ni||/algo más|sin título/i.test(title)) return; const tally={}; rows.forEach(r=>(/Extras/.test(title)?String(r[i]||"").split(", "):[String(r[i]||"")]).forEach(v=>{ v=v.trim(); if(v) tally[v]=(tally[v]||0)+1; })); const top=Object.entries(tally).sort((a,b)=>b[1]-a[1]); if(top.length) VOTES.q.push({title,top}); });
+    H.forEach((title,i)=>{ if(i===0||i===ni||/algo más|sin título/i.test(title)) return; const tally={}; rows.forEach(r=>(/Extras/.test(title)?String(r[i]||"").split(", "):[String(r[i]||"")]).forEach(v=>{ v=v.trim(); if(v) tally[v]=(tally[v]||0)+1; })); const top=Object.entries(tally).sort((a,b)=>b[1]-a[1]); if(top.length) VOTES.q.push({title,top,i}); });
     const tis=H.map((t,i)=>/parte del viaje/i.test(t)?i:-1).filter(i=>i>=0); const ti=tis.length?tis[0]:-1; const trv=r=>tis.map(i=>r[i]).find(Boolean)||""; const cls=v=>!v?"":/Todo el viaje/.test(v)?"both":/primera parte/.test(v)?"w1":/Me sumo el 23/.test(v)?"w2":/no sé/i.test(v)?"unk":"other";
     const lastBy={}; rows.forEach((r,i)=>{ lastBy[(ni>=0&&(r[ni]||"").trim())||"#"+i]=r; });
     VOTES.tr={}; VOTES.cnt={both:0,w1:0,w2:0,unk:0,other:0}; VOTES.others=[];
     if(ti>=0) Object.entries(lastBy).forEach(([k,r])=>{ const v=trv(r), c=cls(v); if(!c) return; VOTES.tr[k]=c; VOTES.cnt[c]++; if(c==="other") VOTES.others.push((k[0]==="#"?"":k+": ")+v); });
     autoN();
     if(state.me&&!VOTES.names.includes(state.me)&&!GOOGLE_CLIENT_ID) state.me="";
-    if(GOOGLE_CLIENT_ID&&!TOKEN) state.me="";
+    if(GOOGLE_CLIENT_ID&&!TOKEN) state.me=""; else if(state.me){ const n=VOTES.names.find(n=>slug(n)===slug(state.me)); if(n) state.me=n; }
     render(); }catch(e){ $("#vt-body").innerHTML="No pude leer la planilla de respuestas. Revisá que esté compartida para cualquiera con el enlace."; } }
 const MIN_RESP=8, DEF_N=[6,11];
 function autoN(){ if(state.manualN) return; const c=VOTES&&VOTES.cnt; const ok=c&&c.both+c.w1+c.w2>=MIN_RESP&&c.both+c.w1>0&&c.both+c.w2>0; state.n1=ok?c.both+c.w1:DEF_N[0]; state.n2=ok?c.both+c.w2:DEF_N[1]; ["n1","n2"].forEach(k=>{ $("#"+k).value=state[k]; }); }
@@ -454,12 +455,12 @@ function prefs(win){ const f={}; if(/misma casa/.test(win(/juntos o repartidos/)
   if(/sí o sí/.test(win(/Quebrada/))) f.tilc=true; const y=win(/Yungas/); return {f, base:/selva/.test(y)?"San Francisco":(y?"entrada":"")}; }
 function fits(P,o,s){ if(!FILTERS.filter(x=>P.f[x[0]]).every(x=>x[2](o,s))) return false; if(s.id==="yungas"&&P.base) return P.base==="San Francisco"?o.base==="San Francisco":o.base!=="San Francisco"; return true; }
 const mine=()=>state.me&&VOTES?prefs(myWin):null;
-const myTr=()=>{ const c=state.me&&VOTES&&VOTES.tr&&VOTES.tr[state.me]; return c==="both"||c==="w1"||c==="w2"?c:""; };
+const myTr=()=>{ const k=state.me&&VOTES&&VOTES.tr&&Object.keys(VOTES.tr).find(k=>slug(k)===slug(state.me)); const c=k&&VOTES.tr[k]; return c==="both"||c==="w1"||c==="w2"?c:""; };
 const goes=s=>{ const c=myTr(); return !c||c==="both"||(c==="w1")===s.week1; };
 const QL=[["Alojamiento",[[/Tope de alojamiento/,"Tope por noche"],[/juntos o repartidos/,"Juntos o repartidos"],[/Ubicación/,"Ubicación"],[/Tipo de lugar/,"Tipo de lugar"],[/Cocina/,"Cocina"],[/cama doble/,"Compartir cama"],[/Baños/,"Baños"],[/reseña/,"Lugares sin reseñas"],[/Extras/,"Extras que más pesan"]]],["Paradas",[[/Yungas/,"Yungas: dónde dormir"],[/Quebrada/,"Quebrada: base"]]],["Vuelos y plata",[[/Qué priorizamos/,"Vuelos: qué priorizar"],[/Flexible/,"Fechas flexibles"],[/Equipaje/,"Equipaje"],[/micro para ahorrar/,"Volar a Salta + micro (los del 23/1)"],[/en qué gastamos/,"En qué gastar más"]]]];
 const shortA=a=>String(a).split(":")[0];
 function renderVotes(){ if(!VOTES) return; const me=state.me;
-  const myRow=me?[...VOTES.rows].reverse().find(r=>(r[VOTES.ni]||"").trim()===me):null; const myA=q=>{ const i=VOTES.H.indexOf(q.title); return myRow&&i>=0?String(myRow[i]||""):""; };
+  const myRow=me?[...VOTES.rows].reverse().find(r=>(r[VOTES.ni]||"").trim()===me):null; const myA=q=>myRow?String(myRow[q.i]||""):"";
   const who=GOOGLE_CLIENT_ID?(me?`<span style="font-weight:600">Hola, ${esc(me)} 👋</span><button class="pill" type="button" id="g-out">Salir</button>`:`<span id="gbtn"></span><span class="hid" style="margin:0">${esc(LOGIN_MSG||"Entrá con Google para votar.")}</span>`):"";
   const w=$("#vt-who"); if(w) w.innerHTML=who;
   const c=VOTES.cnt||{both:0,w1:0,w2:0,unk:0,other:0}; const a=c.both+c.w1,b=c.both+c.w2,p=c.unk+c.other; const real=!state.manualN&&a+b&&c.both+c.w1+c.w2>=MIN_RESP;
@@ -470,7 +471,7 @@ function renderVotes(){ if(!VOTES) return; const me=state.me;
     const win=multi?q.top.slice(0,2).map(o=>`${esc(o[0])} (${o[1]})`).join(" · "):tie?q.top.filter(o=>o[1]===q.top[0][1]).map(o=>esc(shortA(o[0]))).join(" / "):esc(shortA(q.top[0][0]));
     const mine=!m||multi?"":(!tie&&m===q.top[0][0])?`<em class="same">✓ igual que vos</em>`:`<em class="diff">Vos: ${esc(shortA(m))}</em>`;
     return `<div class="wrow"><span class="wl">${label}</span><span class="wa">${tie?`<i class="tie">Empate</i> `:""}${win}${mine}</span><span class="wn">${multi?"":tie?`${q.top[0][1]} y ${q.top[0][1]} de ${tot}`:`${q.top[0][1]} de ${tot}`}</span></div>`; };
-  $("#vt-body").innerHTML=stats+`<h4 class="vh">Lo que va ganando</h4>${me?"":`<p class="vnote">Con la sesión iniciada te marca en qué coincidís y en qué no.</p>`}`+QL.map(g=>`<div class="wgroup"><h5>${g[0]}</h5>${g[1].map(x=>row(x[0],x[1])).join("")}</div>`).join("");
+  $("#vt-body").innerHTML=stats+`<h4 class="vh">Lo que va ganando</h4><p class="vnote">${me?"Al lado de cada respuesta ves si coincide con la tuya. Más abajo, las opciones con la etiqueta “Va con lo que pediste” cumplen lo que respondiste vos.":"Con la sesión iniciada te marca en qué coincidís y en qué no."}</p>`+QL.map(g=>`<div class="wgroup"><h5>${g[0]}</h5>${g[1].map(x=>row(x[0],x[1])).join("")}</div>`).join("");
   $("#vt-more").innerHTML=`<details><summary>Ver todas las respuestas, pregunta por pregunta</summary><div class="vgrid" style="margin-top:10px">`+VOTES.q.map(q=>{ const tot=q.top.reduce((x,y)=>x+y[1],0); const m=myA(q); const multi=/Extras/.test(q.title);
     return `<div class="vq"><h5>${esc(q.title)}</h5>${q.top.map((o,i)=>{ const isMe=m&&(multi?m.split(/,\s*/).includes(o[0]):m===o[0]); return `<div class="vo ${o[1]===q.top[0][1]?"win":""}"><span>${esc(o[0])}${isMe?` <u>← vos</u>`:""}</span><b>${o[1]}${multi?"":` · ${Math.round(o[1]/tot*100)}%`}</b><i style="width:${(o[1]/(multi?VOTES.n:tot)*100).toFixed(0)}%"></i></div>`; }).join("")}</div>`; }).join("")+`</div></details>`;
   drawLogin(); }

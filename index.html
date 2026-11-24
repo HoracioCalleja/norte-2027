@@ -265,15 +265,45 @@ body.boot .card{animation:rise .5s both;animation-delay:calc(var(--i)*60ms)}
 @media (hover:none){ .card[data-k="residencial-espana"] .egg{animation:peek 6s 1.5s ease-in-out infinite} @keyframes peek{0%,55%,100%{opacity:0;transform:translateY(-100%)}62%,92%{opacity:1;transform:none}} }
 .pop{position:fixed;z-index:99;pointer-events:none;font-size:22px;animation:fly .9s cubic-bezier(.2,.7,.3,1) forwards}
 @keyframes fly{to{transform:translate(var(--dx),var(--dy)) rotate(var(--r));opacity:0}}
-#llama{position:fixed;bottom:10px;left:calc(8px + var(--p,0)*(100vw - 60px));z-index:30;font-size:30px;background:none;border:0;cursor:pointer;padding:4px;transition:left .15s linear;animation:walk .5s steps(2) infinite;transform:scaleX(-1)}
+body{padding-bottom:74px}
+#trail{position:fixed;left:0;right:0;bottom:0;height:64px;z-index:30;background:color-mix(in srgb,var(--bg) 86%,transparent);backdrop-filter:blur(8px);border-top:1px solid var(--line)}
+#trail svg{position:absolute;inset:0;width:100%;height:100%;overflow:visible}
+#trail .tbase{fill:none;stroke:var(--line);stroke-width:3;stroke-dasharray:2 7;stroke-linecap:round;vector-effect:non-scaling-stroke}
+#trail .tdone{fill:none;stroke:url(#tgrad);stroke-width:4;stroke-linecap:round;vector-effect:non-scaling-stroke;stroke-dasharray:1;stroke-dashoffset:1;transition:stroke-dashoffset .18s linear}
+.tnode{position:absolute;translate:-50% -50%;border:0;background:none;padding:0;cursor:pointer;color:var(--muted);font:600 10.5px var(--body);display:grid;justify-items:center;gap:1px;white-space:nowrap}
+.tnode i{width:12px;height:12px;border-radius:50%;background:var(--surface);border:3px solid var(--line);display:block;transition:transform .25s cubic-bezier(.2,1.6,.4,1),background .2s,border-color .2s}
+.tnode span{position:absolute;top:13px}
+.tnode.done i{background:var(--accent);border-color:var(--accent)}.tnode.done{color:var(--ink)}
+.tnode.here i{transform:scale(1.5);background:var(--pop,var(--accent));border-color:var(--pop,var(--accent))}.tnode.here{color:var(--ink);font-weight:800}
+#llama{position:absolute;left:0;top:0;translate:-50% -92%;z-index:2;font-size:28px;line-height:1;background:none;border:0;cursor:pointer;padding:0;transition:left .18s linear,top .18s linear}
+#llama b{display:block;font-weight:400;transform:scaleX(-1)}#llama.go b{animation:walk .35s steps(2) infinite}#llama.back b{transform:none}
+@media (max-width:640px){ #trail{height:58px} .tnode{font-size:9px} .tnode span{top:12px} #llama{font-size:24px} }
+/* cartel de login */
+#lg{border:0;padding:0;border-radius:28px;background:var(--surface);color:var(--ink);width:min(380px,calc(100vw - 32px));box-shadow:0 30px 80px rgba(0,0,0,.5);overflow:visible}
+#lg::backdrop{background:rgba(8,10,16,.7);backdrop-filter:blur(4px)}
+#lg[open]{animation:lgin .35s cubic-bezier(.2,1.5,.4,1)}@keyframes lgin{from{transform:scale(.7) rotate(-4deg);opacity:0}}
+.lgin{padding:54px 24px 22px;text-align:center;position:relative}
+.lgllama{position:absolute;top:-44px;left:50%;translate:-50% 0;font-size:76px;line-height:1;animation:nope 1.6s ease-in-out infinite}@keyframes nope{0%,60%,100%{rotate:0deg}70%{rotate:-12deg}80%{rotate:10deg}90%{rotate:-6deg}}
+.lgin h3{font:800 24px/1.1 var(--display);margin:0 0 8px}.lgin p{margin:0 0 12px;font-size:15px;line-height:1.45;color:var(--muted)}.lgin p b{color:var(--ink)}
+.lgsteps{text-align:left;margin:0 0 14px;padding:0;list-style:none;display:grid;gap:6px;font-size:14px}.lgsteps li{background:var(--bg);border-radius:14px;padding:9px 12px;display:flex;gap:10px;align-items:center}.lgsteps li i{font-style:normal;font-size:18px}
+#gbtn2{display:flex;justify-content:center;min-height:44px;color-scheme:light}
+#lg-msg{color:var(--bad);font-weight:600;min-height:0}
+.lgno{background:none;border:0;color:var(--muted);font:600 13.5px var(--body);cursor:pointer;text-decoration:underline;text-underline-offset:3px;margin-top:10px}
 @keyframes walk{50%{translate:0 -4px}}
-@media (prefers-reduced-motion: reduce){ .aguayo,h1 .wave,.yline span.here,#llama,.egg .ball,.big b,body.boot .card{animation:none!important} .card:hover,.pill:hover,.stopchip:hover{transform:none} }
+@media (prefers-reduced-motion: reduce){ .aguayo,h1 .wave,.yline span.here,#llama b,.lgllama,#lg[open],.egg .ball,.big b,body.boot .card{animation:none!important} .card:hover,.pill:hover,.stopchip:hover{transform:none} }
 @media (max-width:640px){ .big b{font-size:26px} h1{font-size:36px} .left{display:none} .balance{padding:6px 0 8px} .tile{padding:10px 12px;border-radius:16px} .meter{margin-top:6px} }
 </style>
 </head>
 <body>
 <div class="aguayo" aria-hidden="true"></div>
 <dialog id="det" aria-label="Detalle del alojamiento"></dialog>
+<dialog id="lg" aria-labelledby="lg-t"><div class="lgin"><div class="lgllama" aria-hidden="true">🦙</div>
+  <h3 id="lg-t">¡Alto ahí, forastero!</h3>
+  <p id="lg-what">La llama no anota votos de desconocidos.</p>
+  <ul class="lgsteps"><li><i>1️⃣</i><span>Tocá el botón de Google de acá abajo.</span></li><li><i>2️⃣</i><span>Entrá con <b>la misma cuenta</b> con la que respondiste la encuesta.</span></li><li><i>3️⃣</i><span>Listo: tu voto se guarda solo, no hace falta tocar nada más.</span></li></ul>
+  <div id="gbtn2"></div><p id="lg-msg" aria-live="polite"></p>
+  <button class="lgno" type="button" data-lgclose="1">Ahora no, sigo mirando</button></div></dialog>
+<div id="trail" aria-label="Recorrido del viaje"><svg viewBox="0 0 1000 64" preserveAspectRatio="none" aria-hidden="true"><defs><linearGradient id="tgrad" x1="0" x2="1"><stop offset="0" stop-color="#a78bfa"/><stop offset=".5" stop-color="#ff5c8a"/><stop offset="1" stop-color="#ffb703"/></linearGradient></defs><path class="tbase" id="tpath" d="M40,30 C120,4 150,4 224,24 S340,52 408,24 S520,2 592,26 S710,54 776,22 S900,4 960,28"/><path class="tdone" id="tdone" pathLength="1" d="M40,30 C120,4 150,4 224,24 S340,52 408,24 S520,2 592,26 S710,54 776,22 S900,4 960,28"/></svg><div id="tnodes"></div></div>
 <div class="wrap">
   <header class="top">
     <div>
@@ -515,12 +545,17 @@ let TOKEN="", LOGIN_MSG="", PEND=null;
 try{ TOKEN=sessionStorage.getItem("norte_tok")||""; }catch(e){}
 async function api(body){ const r=await fetch(VOTE_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({...body,token:TOKEN})}); return r.json(); }
 function logout(msg){ TOKEN=""; state.me=""; LOGIN_MSG=msg||""; try{ sessionStorage.removeItem("norte_tok"); }catch(e){} render(); }
-async function whoami(){ if(!TOKEN) return; try{ const r=await api({action:"me"}); if(r.ok){ const n=VOTES&&VOTES.names.find(n=>slug(n)===slug(r.apodo)); state.me=n||r.apodo; LOGIN_MSG=""; render(); if(PEND){ const p=PEND; PEND=null; const s=STOPS.find(x=>x.id===p.stop); if(s&&goes(s)&&myVote(p.stop)!==p.opt){ castVote(p.stop,p.opt); const o=OPT[p.stop].find(x=>x.key===p.opt); $("#vt-msg").textContent=`Listo, ${state.me}: quedó tu voto para ${o?o.name:""} en ${s.name}.`; } else if(s&&!goes(s)) $("#vt-msg").textContent=`No estás en ${s.name}, así que ese voto no se guardó.`; } }
-    else if(r.error==="sin_encuesta"){ state.me=""; LOGIN_MSG="Con esta cuenta todavía no respondiste la encuesta. Respondela y volvé."; PEND=null; render(); } else logout(); }catch(e){ LOGIN_MSG="No pude verificar tu sesión. Probá de nuevo."; render(); } }
+async function whoami(){ if(!TOKEN) return; try{ const r=await api({action:"me"}); if(r.ok){ const n=VOTES&&VOTES.names.find(n=>slug(n)===slug(r.apodo)); state.me=n||r.apodo; LOGIN_MSG=""; closeLg(); render(); if(PEND){ const p=PEND; PEND=null; const s=STOPS.find(x=>x.id===p.stop); if(s&&goes(s)&&myVote(p.stop)!==p.opt){ castVote(p.stop,p.opt); burst(innerWidth/2,innerHeight/2,["🔥","🎉","🦙","🌵","✨"],24); const o=OPT[p.stop].find(x=>x.key===p.opt); $("#vt-msg").textContent=`Listo, ${state.me}: quedó tu voto para ${o?o.name:""} en ${s.name}.`; } else if(s&&!goes(s)) $("#vt-msg").textContent=`No estás en ${s.name}, así que ese voto no se guardó.`; } }
+    else if(r.error==="sin_encuesta"){ state.me=""; LOGIN_MSG="Con esta cuenta todavía no respondiste la encuesta. Respondela y volvé."; if($("#lg")&&$("#lg").open){ $("#lg-msg").textContent="Con esa cuenta no respondiste la encuesta. Probá con otra, o respondela primero."; TOKEN=""; try{ sessionStorage.removeItem("norte_tok"); }catch(e){} } else PEND=null; render(); } else logout(); }catch(e){ LOGIN_MSG="No pude verificar tu sesión. Probá de nuevo."; render(); } }
 function initLogin(){ if(!GOOGLE_CLIENT_ID) return; const s=document.createElement("script"); s.src="https://accounts.google.com/gsi/client"; s.async=true;
   s.onload=()=>{ google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID,auto_select:true,callback:r=>{ TOKEN=r.credential; try{ sessionStorage.setItem("norte_tok",TOKEN); }catch(e){} whoami(); }}); drawLogin(); if(TOKEN) whoami(); };
   document.head.appendChild(s); }
-function drawLogin(){ const el=document.getElementById("gbtn"); if(el&&window.google&&!TOKEN) google.accounts.id.renderButton(el,{theme:matchMedia("(prefers-color-scheme: dark)").matches?"filled_black":"outline",shape:"pill",size:"medium",text:"signin_with",logo_alignment:"left",locale:"es"}); }
+function askLogin(){ const d=$("#lg"); if(!d) return; const s=PEND&&STOPS.find(x=>x.id===PEND.stop), o=s&&OPT[s.id].find(x=>x.key===PEND.opt);
+  $("#lg-what").innerHTML=o?`La llama no anota votos de desconocidos. Decile quién sos y te guarda el voto por <b>${esc(o.name)}</b> en ${s.name}.`:"La llama no anota votos de desconocidos. Decile quién sos y votá.";
+  $("#lg-msg").textContent=""; if(d.showModal&&!d.open) d.showModal(); drawLogin(); }
+function closeLg(){ const d=$("#lg"); if(d&&d.open) d.close(); }
+function drawLogin(){ const e2=document.getElementById("gbtn2"); if(e2&&window.google&&!state.me&&$("#lg")&&$("#lg").open){ e2.innerHTML=""; google.accounts.id.renderButton(e2,{theme:"filled_blue",shape:"pill",size:"large",text:"signin_with",logo_alignment:"left",locale:"es",width:280}); }
+   const el=document.getElementById("gbtn"); if(el&&window.google&&!TOKEN) google.accounts.id.renderButton(el,{theme:matchMedia("(prefers-color-scheme: dark)").matches?"filled_black":"outline",shape:"pill",size:"medium",text:"signin_with",logo_alignment:"left",locale:"es"}); }
 let LV=null;
 const slug=n=>"n_"+String(n||"").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"_").slice(0,60);
 const nameOf=v=>{ const n=VOTES&&VOTES.names.find(n=>slug(n)===v); return n||v.replace(/^n_/,""); };
@@ -568,10 +603,11 @@ function closeDet(){ DET=null; const d=$("#det"); if(d&&d.open) d.close(); }
 function render(){ fix(); renderTabs(); renderTiles(); renderRoute(); renderPresets(); renderFilters(); renderStops(); const fc=$("#fcount"); if(fc) fc.textContent=CNT[0]===CNT[1]?`Se ven las ${CNT[1]} opciones`:`Se ven ${CNT[0]} de ${CNT[1]} opciones`; renderMoves(); renderVotes(); $("#summary").textContent=summaryText(); save(); if(DET) renderDet(true); }
 document.addEventListener("click",e=>{
   if(e.target.closest("[data-dclose]")||e.target.id==="det"){ closeDet(); return; }
+  if(e.target.closest("[data-lgclose]")||e.target.id==="lg"){ PEND=null; closeLg(); return; }
   const gn=e.target.closest("[data-gnav]"); if(gn){ const tr=$("#det .gtrack"); tr.scrollBy({left:+gn.dataset.gnav*tr.clientWidth,behavior:"smooth"}); return; }
   const tb=e.target.closest("[data-tab]"); if(tb){ state.tab=tb.dataset.tab; render(); return; }
   if(e.target.closest("[data-fclear]")){ state.f={}; state.applied=false; state.prevSel=null; render(); return; }
-  const vb=e.target.closest("[data-vopt]"); if(vb){ if(!state.me){ closeDet(); PEND={stop:vb.dataset.vstop,opt:vb.dataset.vopt}; LOGIN_MSG="👈 Para votar, entrá con Google. Tu voto se guarda solo apenas entres."; renderVotes(); const box=$("#vt-who")||$("#votos"); if(box.scrollIntoView) box.scrollIntoView({block:"center"}); return; } const on=castVote(vb.dataset.vstop,vb.dataset.vopt); if(on) burst(e.clientX,e.clientY,["🔥","🎉","🦙","🌵","✨"],14); return; }
+  const vb=e.target.closest("[data-vopt]"); if(vb){ if(!state.me){ closeDet(); PEND={stop:vb.dataset.vstop,opt:vb.dataset.vopt}; askLogin(); return; } const on=castVote(vb.dataset.vstop,vb.dataset.vopt); if(on) burst(e.clientX,e.clientY,["🔥","🎉","🦙","🌵","✨"],14); return; }
   if(e.target.closest("#g-out")){ if(window.google) google.accounts.id.disableAutoSelect(); logout(); return; }
   if(e.target.closest("#llama")){ burst(innerWidth/2,innerHeight/3,["🦙"],40,true); return; }
   const ch=e.target.closest("[data-opt]"); if(ch){ state.sel[ch.dataset.stop]=ch.dataset.opt; render(); return; }
@@ -601,8 +637,21 @@ state.n1=Math.min(14,Math.max(1,state.n1||5)); state.n2=Math.min(14,Math.max(1,s
 const calm=matchMedia("(prefers-reduced-motion: reduce)").matches;
 function burst(x,y,em,n,rain){ if(calm) return; for(let i=0;i<n;i++){ const s=document.createElement("span"); s.className="pop"; s.textContent=em[i%em.length]; const a=Math.random()*Math.PI*2, d=60+Math.random()*(rain?innerWidth/2:120);
     s.style.cssText=`left:${x}px;top:${y}px;--dx:${Math.cos(a)*d}px;--dy:${rain?innerHeight*0.7*Math.random()+100:Math.sin(a)*d-40}px;--r:${(Math.random()*720-360)|0}deg;animation-duration:${rain?1.6:0.9}s`; (document.querySelector("dialog[open]")||document.body).appendChild(s); setTimeout(()=>s.remove(),rain?1700:1000); } }
-(function(){ const l=document.createElement("button"); l.id="llama"; l.type="button"; l.setAttribute("aria-label","Llama"); l.textContent="🦙"; document.body.appendChild(l);
-  const mv=()=>{ const m=document.documentElement.scrollHeight-innerHeight; l.style.setProperty("--p",m>0?scrollY/m:0); }; addEventListener("scroll",mv,{passive:true}); mv();
+(function(){ const bar=$("#trail"), path=document.getElementById("tpath"), done=document.getElementById("tdone"), box=$("#tnodes"); if(!bar||!path||!path.getTotalLength) return;
+  const L=path.getTotalLength(), N=STOPS.length, SH=["Salta","Cafayate","Yungas","Tilcara","Iruya","Jujuy"];
+  const at=p=>{ const q=path.getPointAtLength(Math.max(0,Math.min(1,p))*L); return [q.x/1000*bar.clientWidth, q.y/64*bar.clientHeight]; };
+  box.innerHTML=STOPS.map((s,i)=>`<button class="tnode" type="button" data-go="${s.id}" aria-label="Ir a ${s.name}"><i></i><span>${SH[i]||s.name}</span></button>`).join("")+`<button id="llama" type="button" aria-label="Llama"><b>🦙</b></button>`;
+  const nodes=[...box.querySelectorAll(".tnode")], l=document.getElementById("llama"); let last=-1, lastP=0, stopT=0, raf=0;
+  const place=()=>{ nodes.forEach((n,i)=>{ const [x,y]=at(i/(N-1)); n.style.left=x+"px"; n.style.top=y+"px"; }); };
+  const mv=()=>{ raf=0; const y=scrollY+innerHeight*0.45; const tops=STOPS.map(s=>{ const e=document.getElementById("s-"+s.id); return e?e.getBoundingClientRect().top+scrollY:0; });
+    let p=0; if(y>=tops[N-1]) p=1; else if(y>tops[0]){ for(let i=0;i<N-1;i++){ if(y>=tops[i]&&y<tops[i+1]){ p=(i+(y-tops[i])/Math.max(1,tops[i+1]-tops[i]))/(N-1); break; } } }
+    const [x,yy]=at(p); l.style.left=x+"px"; l.style.top=yy+"px"; done.style.strokeDashoffset=1-p;
+    const cur=Math.round(p*(N-1)-0.5+0.5), here=y<tops[0]?-1:Math.min(N-1,Math.floor(p*(N-1)+0.0001));
+    nodes.forEach((n,i)=>{ n.classList.toggle("done",p*(N-1)>=i-0.001&&y>=tops[0]); n.classList.toggle("here",i===here); });
+    if(here!==last&&here>=0&&last!==-2&&!calm){ const r=nodes[here].getBoundingClientRect(); if(last!==-1||here>0) burst(r.left+6,r.top,["✨","🌵"],5); } last=here;
+    l.classList.toggle("back",p<lastP-0.0005); if(Math.abs(p-lastP)>0.0002&&!calm){ l.classList.add("go"); clearTimeout(stopT); stopT=setTimeout(()=>l.classList.remove("go"),220); } lastP=p; };
+  const req=()=>{ if(!raf) raf=requestAnimationFrame(mv); };
+  addEventListener("scroll",req,{passive:true}); addEventListener("resize",()=>{ place(); req(); }); place(); mv(); setTimeout(()=>{ place(); mv(); },600);
   document.body.classList.add("boot"); setTimeout(()=>document.body.classList.remove("boot"),1800); })();
 
 render();

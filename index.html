@@ -433,14 +433,14 @@ function totals(){ const t={full:{fly:0,stay:0,move:0}, late:{fly:0,stay:0,move:
   return t; }
 function renderTiles(){ const t=totals(); const budA=state.bud*state.usd;
   const tile=(key,title,days,cls,n)=>{ const x=t[key]; const com=x.stay+x.move, sum=com+x.fly; const left=budA-sum; const scale=Math.max(budA,sum); const pct=v=>(v/scale*100).toFixed(2)+"%";
-    return `<div class="tile ${cls}"><h2>${title}${key==="me"?"":` · ${n} pers.`}</h2>
+    return `<div class="tile ${cls}"><h2>${title}${key==="full"?` · ${n} pers.`:""}</h2>
       <div class="big"><b>${usd(com)}</b><span>por persona · alojamiento + traslados allá</span></div>
       <div class="meter" role="img" aria-label="Gastado ${Math.round(sum/budA*100)}% del tope"><i class="m-stay" style="width:${pct(x.stay)}"></i><i class="m-move" style="width:${pct(x.move)}"></i><i class="m-fly" style="width:${pct(x.fly)}"></i></div>
       <div class="left">+ llegar y volver <b>${usd(x.fly)}</b> · ${left>=0? `te quedan <b class="ok">${usd(left)}</b> (${usd(left/days)} por día)` : `<b class="over">te pasás ${usd(-left)}</b>`}</div>
       <div class="legend"><span><i style="background:var(--accent)"></i>Alojamiento ${usd(x.stay)}</span><span><i style="background:#f2b632"></i>Traslados allá ${usd(x.move)}</span><span><i style="background:#1c6fa8"></i>Llegar y volver ${usd(x.fly)}</span></div></div>`; };
   const c=myTr(); if(c){ const me={fly:0,stay:0,move:0}; STOPS.forEach(s=>{ if(goes(s)) me.stay+=pp(s,chosen(s))||0; }); MOVES.forEach(m=>{ if(!m.id) return; const ok=c==="both"?m.who!==2:c==="w2"?m.who!==1:m.who===1; if(ok) me[m.id[0]==="f"?"fly":"move"]+=moveCost(m); }); t.me=me;
     $("#tiles").innerHTML=tile("me","Tu viaje, "+esc(state.me)+" · "+(c==="both"?"16 → 31/1":c==="w1"?"16 → 23/1":"23 → 31/1"),c==="both"?15:c==="w1"?7:8,"second",c==="w2"?state.n2:state.n1)+(c==="w1"?`<div class="tile"><h2>Ojo</h2><div class="left">La vuelta del 23/1 no está buscada: no está sumada.</div></div>`:""); return; }
-  $("#tiles").innerHTML = tile("full","Viaje completo",15,"",state.n1) + (state.n2>state.n1? tile("late","Desde el 23/1",8,"second",state.n2-state.n1):""); }
+  $("#tiles").innerHTML = tile("full","Viaje completo",15,"",state.n1) + (state.n2>state.n1? tile("late",`Se suman el 23/1 · ${state.n2-state.n1} pers. · desde ahí somos ${state.n2}`,8,"second",state.n2-state.n1):""); }
 const calc=()=>state.tab==="calc";
 function renderTabs(){ const T=[["votar","🗳️ Votar","Elegí tu preferida en cada parada"],["calc","🧮 Calcular","Armá el viaje y mirá cuánto sale"]];
   $("#tabs").innerHTML=T.map(t=>`<button class="tab ${state.tab===t[0]?"on":""}" type="button" role="tab" aria-selected="${state.tab===t[0]}" data-tab="${t[0]}">${t[1]}<small>${t[2]}</small></button>`).join("");
@@ -506,7 +506,7 @@ function summaryText(){ const t=totals(); const sum=k=>t[k].fly+t[k].stay+t[k].m
   const lines=[`NORTE 2027 · ${state.n1} la primera semana, ${state.n2} la segunda`,""];
   STOPS.forEach(s=>{ const o=chosen(s); lines.push(`${s.name} (${s.when}, ${nOf(s)} pers.): ${o.name} · ${tot(s,o)==null?"sin precio todavía":fmt(pp(s,o)/s.nights)+" p/p por noche"}`); });
   const com=k=>t[k].stay+t[k].move;
-  lines.push("", `Gasto común (alojamiento + traslados allá), sin comida:`, `· Viaje completo: ${usd(com("full"))} por persona (${fmt(com("full"))})`, `· Los que se suman el 23/1: ${usd(com("late"))} por persona (${fmt(com("late"))})`, `Llegar y volver va aparte, según cómo viaje cada uno.`, `Tope: US$ ${state.bud} · dólar a $ ${state.usd}`);
+  lines.push("", `Gasto común (alojamiento + traslados allá), sin comida:`, `· Viaje completo: ${usd(com("full"))} por persona (${fmt(com("full"))})`, `· Los ${state.n2-state.n1} que se suman el 23/1 (desde ahí somos ${state.n2}): ${usd(com("late"))} por persona (${fmt(com("late"))})`, `Llegar y volver va aparte, según cómo viaje cada uno.`, `Tope: US$ ${state.bud} · dólar a $ ${state.usd}`);
   return lines.join("\n"); }
 
 // --- votos del grupo (Google Forms -> planilla) ---

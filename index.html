@@ -165,6 +165,7 @@ section.stop.away .cards,section.stop.away .ymap,section.stop.away .base{opacity
 #gbtn{display:inline-flex;color-scheme:light;border-radius:99px;overflow:hidden;height:32px;vertical-align:middle}#gbtn iframe{color-scheme:light}
 .chip.mine{background:var(--accent-soft);border-color:transparent;color:var(--accent);font-weight:600}.chip.votes{background:var(--ink);color:var(--bg);border-color:transparent;font-weight:600}.choose.vote.on{background:var(--good);border-color:var(--good);color:#fff}
 .vgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:12px}.vq h5{margin:0 0 5px;font:600 13px var(--body)}.vo{position:relative;display:flex;justify-content:space-between;gap:8px;font-size:12.5px;padding:4px 8px;border-radius:6px;overflow:hidden;margin-top:3px;background:var(--bg)}.vo span,.vo b{position:relative;z-index:1}.vo i{position:absolute;inset:0 auto 0 0;background:var(--line)}.vo.win i{background:var(--accent-soft)}.vo.win{font-weight:600}
+details.adj{align-self:flex-end}details.adj summary{cursor:pointer;font-weight:600;font-size:13px;color:var(--muted);list-style:none;border:2px solid var(--line);border-radius:99px;padding:6px 13px;display:inline-block}details.adj[open] summary{margin-bottom:10px}
 .fixed{font-size:13px;color:var(--muted);align-self:center;max-width:26ch}
 
 /* ===== refresh: más joven, más aire ===== */
@@ -238,12 +239,13 @@ body.boot .card{animation:rise .5s both;animation-delay:calc(var(--i)*60ms)}
       <h1>Norte 2027 <span class="wave" aria-hidden="true">🦙</span></h1>
       <p class="sub">16 → 31 de enero. Votá dónde dormimos y mirá cuánto sale.</p>
     </div>
-    <div class="controls">
+    <details class="adj"><summary>Simular</summary><div class="controls">
       <label class="field" for="n1">1ª semana<input id="n1" type="number" min="1" max="14" value="5"></label>
       <label class="field" for="n2">2ª semana<input id="n2" type="number" min="1" max="14" value="11"></label>
       <label class="field" for="usd">Dólar<input id="usd" class="wide" type="number" min="100" step="10" value="1700"></label>
       <label class="field" for="bud">Tope US$<input id="bud" class="wide" type="number" min="100" step="50" value="1000"></label>
-    </div>
+      <button class="pill" type="button" id="auto-n">Volver a lo de la encuesta</button>
+    </div></details>
   </header>
 </div>
 <div class="balance"><div class="wrap"><div class="tiles" id="tiles"></div></div></div>
@@ -315,12 +317,12 @@ const MOVES = [
  {id:"t7", who:0, name:"Humahuaca ↔ Iruya", note:"Ida y vuelta. Tope: 2 × la tarifa Jujuy–Iruya ($ 27.800). Comprar el día anterior.", ars:55600, src:["Todo Jujuy, tarifa desde el 1/10/2026",TJ]},
  {id:"t8", who:0, name:"Humahuaca → Jujuy y al aeropuerto", note:"Micro ($ 15.800) + colectivo al aeropuerto ($ 5.245, sin fuente)", ars:21045, src:["Todo Jujuy, tarifa desde el 1/10/2026",TJ]}
 ];
-let state = {applied:false, prevSel:null, sel:{}, moves:{}, alt:{}, f:{}, me:"", vid:"", myv:{}, n1:5, n2:11, usd:1700, bud:1000};
+let state = {manualN:false, applied:false, prevSel:null, sel:{}, moves:{}, alt:{}, f:{}, me:"", vid:"", myv:{}, n1:5, n2:11, usd:1700, bud:1000};
 const nOf=s=>s.week1?state.n1:state.n2;
 const szOf=s=>{ const n=nOf(s); return s.week1?(n<=5?5:6):(n<=10?10:11); };
 const tot=(s,o)=>{ const v=o.t[szOf(s)]; return v==null?null:v; };
 MOVES.forEach(m=>{ if(m.id){ state.moves[m.id]=true; state.alt[m.id]=0; } });
-const KEY="norte2027i";
+const KEY="norte2027j";
 try{ const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s&&s.sel){ state={...state,...s, moves:{...state.moves,...s.moves}, alt:{...state.alt,...s.alt}, f:{}, applied:false, prevSel:null}; } }catch(e){}
 const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){} };
 const $=s=>document.querySelector(s);
@@ -416,9 +418,12 @@ async function loadVotes(){ const box=$("#votos"); if(!SHEET_ID){ box.hidden=tru
     const lastBy={}; rows.forEach((r,i)=>{ lastBy[(ni>=0&&(r[ni]||"").trim())||"#"+i]=r; });
     VOTES.tr={}; VOTES.cnt={both:0,w1:0,w2:0,unk:0,other:0}; VOTES.others=[];
     if(ti>=0) Object.entries(lastBy).forEach(([k,r])=>{ const v=trv(r), c=cls(v); if(!c) return; VOTES.tr[k]=c; VOTES.cnt[c]++; if(c==="other") VOTES.others.push((k[0]==="#"?"":k+": ")+v); });
+    autoN();
     if(state.me&&!VOTES.names.includes(state.me)&&!GOOGLE_CLIENT_ID) state.me="";
     if(GOOGLE_CLIENT_ID&&!TOKEN) state.me="";
     render(); }catch(e){ $("#vt-body").innerHTML="No pude leer la planilla de respuestas. Revisá que esté compartida para cualquiera con el enlace."; } }
+const MIN_RESP=8, DEF_N=[5,11];
+function autoN(){ if(state.manualN) return; const c=VOTES&&VOTES.cnt; const ok=c&&c.both+c.w1+c.w2>=MIN_RESP&&c.both+c.w1>0&&c.both+c.w2>0; state.n1=ok?c.both+c.w1:DEF_N[0]; state.n2=ok?c.both+c.w2:DEF_N[1]; ["n1","n2"].forEach(k=>{ $("#"+k).value=state[k]; }); }
 const groupWin=re=>{ const q=VOTES&&VOTES.q.find(q=>re.test(q.title)); return q?q.top[0][0]:""; };
 const myWin=re=>{ if(!VOTES||!state.me) return ""; const r=[...VOTES.rows].reverse().find(r=>(r[VOTES.ni]||"").trim()===state.me); const i=VOTES.H.findIndex(t=>re.test(t)); return r&&i>=0?String(r[i]||""):""; };
 function prefs(win){ const f={}; if(/misma casa/.test(win(/juntos o repartidos/))) f.tog=true; if(/Céntrico/.test(win(/Ubicación/))) f.near=true; if(/Imprescindible/.test(win(/Cocina/))) f.kit=true; if(/Hostel/.test(win(/Tipo de lugar/))) f.host=true;
@@ -433,7 +438,7 @@ function renderVotes(){ if(!VOTES) return; const P=mine();
   let diff=""; if(P){ const D=VOTES.q.filter(q=>{ const i=VOTES.H.indexOf(q.title); const r=[...VOTES.rows].reverse().find(r=>(r[VOTES.ni]||"").trim()===state.me); return r&&r[i]&&!/Extras/.test(q.title)&&r[i]!==q.top[0][0]; });
     diff=`<p class="stopnote" style="margin:8px 0 10px"><b>${esc(state.me)}</b>: las opciones que cumplen lo que pediste tienen la etiqueta “Va con lo que pediste”. ${D.length?`No coincidís con lo más votado en: ${D.map(q=>esc(q.title.replace(/[¿?]/g,""))).join(" · ")}.`:"Coincidís con lo más votado en todo."} La elección final es la del grupo.</p>`; }
   $("#vt-body").innerHTML = `<div style="display:flex;flex-wrap:wrap;gap:8px 16px;align-items:center;margin-bottom:8px"><span class="stopnote" style="margin:0">${VOTES.n} ${VOTES.n===1?"persona respondió":"personas respondieron"} la encuesta${VOTES.dup?` (${VOTES.dup} ${VOTES.dup===1?"respuesta repetida, cuenta":"respuestas repetidas, cuentan"} la última)`:""}.</span>${who}</div>${(()=>{ const c=VOTES.cnt; if(!c||!(c.both+c.w1+c.w2+c.unk+c.other)) return ""; const a=c.both+c.w1,b=c.both+c.w2,p=c.unk+c.other;
-    return `<p class="stopnote" style="margin:0 0 10px">Hasta ahora: <b>${a}</b> la 1ª semana · <b>${b}</b> la 2ª${p?` · ${p} por confirmar`:""}. ${a&&b?`<button class="pill" type="button" id="vt-n" data-a="${a}" data-b="${b}" title="Carga estas cantidades arriba y recalcula el costo por persona">Calcular con ${a} y ${b} personas</button>`:""}${VOTES.others.length?`<br><span class="hid">Otros planes: ${VOTES.others.map(esc).join(" · ")}</span>`:""}</p>`; })()}${diff}<details><summary style="cursor:pointer;font-weight:600;font-size:13.5px">Ver el conteo por pregunta</summary><div class="vgrid" style="margin-top:10px">`+VOTES.q.map(q=>{ const tot=q.top.reduce((a,b)=>a+b[1],0); return `<div class="vq"><h5>${esc(q.title)}</h5>${q.top.map((o,i)=>`<div class="vo ${i===0?"win":""}"><span>${esc(o[0])}</span><b>${o[1]}</b><i style="width:${(o[1]/tot*100).toFixed(0)}%"></i></div>`).join("")}</div>`; }).join("")+`</div></details>`; drawLogin(); }
+    return `<p class="stopnote" style="margin:0 0 10px">Hasta ahora: <b>${a}</b> la 1ª semana · <b>${b}</b> la 2ª${p?` · ${p} por confirmar`:""}. Los costos están calculados para <b>${state.n1}</b> y <b>${state.n2}</b> personas${state.manualN?" (simulación tuya)":(a+b&&c.both+c.w1+c.w2>=MIN_RESP?" (según la encuesta)":` (estimado hasta que respondan al menos ${MIN_RESP})`)}.${VOTES.others.length?`<br><span class="hid">Otros planes: ${VOTES.others.map(esc).join(" · ")}</span>`:""}</p>`; })()}${diff}<details><summary style="cursor:pointer;font-weight:600;font-size:13.5px">Ver el conteo por pregunta</summary><div class="vgrid" style="margin-top:10px">`+VOTES.q.map(q=>{ const tot=q.top.reduce((a,b)=>a+b[1],0); return `<div class="vq"><h5>${esc(q.title)}</h5>${q.top.map((o,i)=>`<div class="vo ${i===0?"win":""}"><span>${esc(o[0])}</span><b>${o[1]}</b><i style="width:${(o[1]/tot*100).toFixed(0)}%"></i></div>`).join("")}</div>`; }).join("")+`</div></details>`; drawLogin(); }
 function applyVotes(){ if(!VOTES) return;
   if(state.applied){ state.applied=false; state.f={}; if(state.prevSel){ state.sel={...state.prevSel}; state.prevSel=null; } render(); $("#vt-msg").textContent="Sin filtros: se ven todas las opciones."; return; }
   const P=prefs(groupWin); state.prevSel={...state.sel}; state.applied=true; state.f={...P.f};
@@ -475,14 +480,14 @@ document.addEventListener("click",e=>{
   const f=e.target.closest("[data-f]"); if(f){ state.applied=false; state.prevSel=null; const k=f.dataset.f; const on=!state.f[k]; if(k.startsWith("cap")) ["cap25","cap40","cap60"].forEach(c=>state.f[c]=false); state.f[k]=on; render(); return; }
   if(e.target.closest("#vt-load")){ loadVotes(); loadLV(); return; }
   if(e.target.closest("#vt-apply")){ applyVotes(); return; }
-  const vn=e.target.closest("#vt-n"); if(vn){ state.n1=+vn.dataset.a; state.n2=Math.max(+vn.dataset.b,1); ["n1","n2"].forEach(k=>{ $("#"+k).value=state[k]; }); render(); return; }
+  if(e.target.closest("#auto-n")){ state.manualN=false; autoN(); render(); return; }
   const pr=e.target.closest("[data-preset]"); if(pr){ STOPS.forEach(s=>{ state.sel[s.id]=pick(s,pr.dataset.preset).key; }); render(); return; }
 });
 document.addEventListener("change",e=>{ const t=e.target;
   if(t.id==="me"){ state.me=t.value; render(); return; }
   if(t.dataset.move){ state.moves[t.dataset.move]=t.checked; render(); }
   else if(t.dataset.alt){ state.alt[t.dataset.alt]=+t.value; render(); }
-  else if(t.id==="n1"||t.id==="n2"){ const lim=[1,14]; state[t.id]=Math.min(lim[1],Math.max(lim[0],Math.round(+t.value)||lim[0])); t.value=state[t.id]; render(); }
+  else if(t.id==="n1"||t.id==="n2"){ state.manualN=true; const lim=[1,14]; state[t.id]=Math.min(lim[1],Math.max(lim[0],Math.round(+t.value)||lim[0])); t.value=state[t.id]; render(); }
   else if(["usd","bud"].includes(t.id)){ const v=Math.round(+t.value); if(v>0){ state[t.id]=v; render(); } }
 });
 $("#copy").addEventListener("click",async()=>{ try{ await navigator.clipboard.writeText(summaryText()); $("#copied").textContent="Copiado. Pegalo en el grupo."; }catch(err){ $("#copied").textContent="No se pudo copiar solo: seleccioná el texto de abajo."; } });

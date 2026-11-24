@@ -322,7 +322,7 @@ function summaryText(){ const t=totals(); const sum=k=>t[k].fly+t[k].stay+t[k].m
   return lines.join("\n"); }
 
 // --- votos del grupo (Google Forms -> planilla) ---
-const SHEET_ID = "";   // id de la planilla de respuestas, compartida como "cualquiera con el enlace puede ver"
+const SHEET_ID = "1MoXd355xeRHr0ScwCCYQ3hnW83dSZNsEvGahPnI4hUo";   // id de la planilla de respuestas, compartida como "cualquiera con el enlace puede ver"
 let VOTES=null;
 function csv(t){ const R=[]; let r=[],c="",q=false; for(let i=0;i<t.length;i++){ const ch=t[i]; if(q){ if(ch=='"'){ if(t[i+1]=='"'){c+='"';i++;} else q=false; } else c+=ch; } else if(ch=='"') q=true; else if(ch==","){ r.push(c); c=""; } else if(ch=="\n"){ r.push(c); R.push(r); r=[]; c=""; } else if(ch!="\r") c+=ch; } if(c||r.length){ r.push(c); R.push(r); } return R; }
 async function loadVotes(){ const box=$("#votos"); if(!SHEET_ID){ box.hidden=true; return; } box.hidden=false; $("#vt-body").innerHTML="Cargando votos…";

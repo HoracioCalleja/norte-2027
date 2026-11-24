@@ -409,10 +409,10 @@ async function loadVotes(){ const box=$("#votos"); if(!SHEET_ID){ box.hidden=tru
     const seen={}; all.forEach((r,i)=>{ const k=(ni>=0&&(r[ni]||"").trim().toLowerCase())||"#"+i; seen[k]=r; }); const rows=Object.values(seen); const dup=all.length-rows.length;
     VOTES={n:rows.length,dup,q:[],H,rows,ni,names:ni<0?[]:[...new Set(rows.map(r=>(r[ni]||"").trim()).filter(Boolean))]};
     H.forEach((title,i)=>{ if(i===0||i===ni||/algo más|sin título/i.test(title)) return; const tally={}; rows.forEach(r=>(/Extras/.test(title)?String(r[i]||"").split(", "):[String(r[i]||"")]).forEach(v=>{ v=v.trim(); if(v) tally[v]=(tally[v]||0)+1; })); const top=Object.entries(tally).sort((a,b)=>b[1]-a[1]); if(top.length) VOTES.q.push({title,top}); });
-    const ti=H.findIndex(t=>/parte del viaje/i.test(t)); const cls=v=>!v?"":/Todo el viaje/.test(v)?"both":/primera parte/.test(v)?"w1":/Me sumo el 23/.test(v)?"w2":/no sé/i.test(v)?"unk":"other";
+    const tis=H.map((t,i)=>/parte del viaje/i.test(t)?i:-1).filter(i=>i>=0); const ti=tis.length?tis[0]:-1; const trv=r=>tis.map(i=>r[i]).find(Boolean)||""; const cls=v=>!v?"":/Todo el viaje/.test(v)?"both":/primera parte/.test(v)?"w1":/Me sumo el 23/.test(v)?"w2":/no sé/i.test(v)?"unk":"other";
     const lastBy={}; rows.forEach((r,i)=>{ lastBy[(ni>=0&&(r[ni]||"").trim())||"#"+i]=r; });
     VOTES.tr={}; VOTES.cnt={both:0,w1:0,w2:0,unk:0,other:0}; VOTES.others=[];
-    if(ti>=0) Object.entries(lastBy).forEach(([k,r])=>{ const c=cls(r[ti]); if(!c) return; VOTES.tr[k]=c; VOTES.cnt[c]++; if(c==="other") VOTES.others.push((k[0]==="#"?"":k+": ")+r[ti]); });
+    if(ti>=0) Object.entries(lastBy).forEach(([k,r])=>{ const v=trv(r), c=cls(v); if(!c) return; VOTES.tr[k]=c; VOTES.cnt[c]++; if(c==="other") VOTES.others.push((k[0]==="#"?"":k+": ")+v); });
     if(state.me&&!VOTES.names.includes(state.me)&&!GOOGLE_CLIENT_ID) state.me="";
     if(GOOGLE_CLIENT_ID&&!TOKEN) state.me="";
     render(); }catch(e){ $("#vt-body").innerHTML="No pude leer la planilla de respuestas. Revisá que esté compartida para cualquiera con el enlace."; } }

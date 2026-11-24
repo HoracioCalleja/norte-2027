@@ -511,12 +511,12 @@ function applyVotes(){ if(!VOTES) return;
   render(); $("#vt-msg").textContent=Object.keys(P.f).length?"Filtros y elegidas según lo más votado. Tocá de nuevo para ver todo.":"Lo más votado no filtra nada todavía: se ven todas las opciones."; }
 // --- votación de alojamientos (anónima) ---
 const GOOGLE_CLIENT_ID = "233917556561-sv3tgans478h0gfr8e23rcbgf336i9m9.apps.googleusercontent.com";   // ID de cliente OAuth: con esto, votar pide sesión de Google
-let TOKEN="", LOGIN_MSG="";
+let TOKEN="", LOGIN_MSG="", PEND=null;
 try{ TOKEN=sessionStorage.getItem("norte_tok")||""; }catch(e){}
 async function api(body){ const r=await fetch(VOTE_URL,{method:"POST",headers:{"Content-Type":"text/plain"},body:JSON.stringify({...body,token:TOKEN})}); return r.json(); }
 function logout(msg){ TOKEN=""; state.me=""; LOGIN_MSG=msg||""; try{ sessionStorage.removeItem("norte_tok"); }catch(e){} render(); }
-async function whoami(){ if(!TOKEN) return; try{ const r=await api({action:"me"}); if(r.ok){ const n=VOTES&&VOTES.names.find(n=>slug(n)===slug(r.apodo)); state.me=n||r.apodo; LOGIN_MSG=""; render(); }
-    else if(r.error==="sin_encuesta"){ state.me=""; LOGIN_MSG="Con esta cuenta todavía no respondiste la encuesta. Respondela y volvé."; render(); } else logout(); }catch(e){ LOGIN_MSG="No pude verificar tu sesión. Probá de nuevo."; render(); } }
+async function whoami(){ if(!TOKEN) return; try{ const r=await api({action:"me"}); if(r.ok){ const n=VOTES&&VOTES.names.find(n=>slug(n)===slug(r.apodo)); state.me=n||r.apodo; LOGIN_MSG=""; render(); if(PEND){ const p=PEND; PEND=null; const s=STOPS.find(x=>x.id===p.stop); if(s&&goes(s)&&myVote(p.stop)!==p.opt){ castVote(p.stop,p.opt); const o=OPT[p.stop].find(x=>x.key===p.opt); $("#vt-msg").textContent=`Listo, ${state.me}: quedó tu voto para ${o?o.name:""} en ${s.name}.`; } else if(s&&!goes(s)) $("#vt-msg").textContent=`No estás en ${s.name}, así que ese voto no se guardó.`; } }
+    else if(r.error==="sin_encuesta"){ state.me=""; LOGIN_MSG="Con esta cuenta todavía no respondiste la encuesta. Respondela y volvé."; PEND=null; render(); } else logout(); }catch(e){ LOGIN_MSG="No pude verificar tu sesión. Probá de nuevo."; render(); } }
 function initLogin(){ if(!GOOGLE_CLIENT_ID) return; const s=document.createElement("script"); s.src="https://accounts.google.com/gsi/client"; s.async=true;
   s.onload=()=>{ google.accounts.id.initialize({client_id:GOOGLE_CLIENT_ID,auto_select:true,callback:r=>{ TOKEN=r.credential; try{ sessionStorage.setItem("norte_tok",TOKEN); }catch(e){} whoami(); }}); drawLogin(); if(TOKEN) whoami(); };
   document.head.appendChild(s); }
@@ -571,7 +571,7 @@ document.addEventListener("click",e=>{
   const gn=e.target.closest("[data-gnav]"); if(gn){ const tr=$("#det .gtrack"); tr.scrollBy({left:+gn.dataset.gnav*tr.clientWidth,behavior:"smooth"}); return; }
   const tb=e.target.closest("[data-tab]"); if(tb){ state.tab=tb.dataset.tab; render(); return; }
   if(e.target.closest("[data-fclear]")){ state.f={}; state.applied=false; state.prevSel=null; render(); return; }
-  const vb=e.target.closest("[data-vopt]"); if(vb){ if(!state.me){ closeDet(); const box=$("#votos"); if(box.scrollIntoView) box.scrollIntoView({block:"center"}); $("#vt-msg").textContent=GOOGLE_CLIENT_ID?"Para votar, entrá con Google acá 👇":(VOTES&&VOTES.names.length?"Para votar, elegí quién sos acá 👇":"Para votar, primero respondé la encuesta con tu apodo."); return; } const on=castVote(vb.dataset.vstop,vb.dataset.vopt); if(on) burst(e.clientX,e.clientY,["🔥","🎉","🦙","🌵","✨"],14); return; }
+  const vb=e.target.closest("[data-vopt]"); if(vb){ if(!state.me){ closeDet(); PEND={stop:vb.dataset.vstop,opt:vb.dataset.vopt}; LOGIN_MSG="👈 Para votar, entrá con Google. Tu voto se guarda solo apenas entres."; renderVotes(); const box=$("#vt-who")||$("#votos"); if(box.scrollIntoView) box.scrollIntoView({block:"center"}); return; } const on=castVote(vb.dataset.vstop,vb.dataset.vopt); if(on) burst(e.clientX,e.clientY,["🔥","🎉","🦙","🌵","✨"],14); return; }
   if(e.target.closest("#g-out")){ if(window.google) google.accounts.id.disableAutoSelect(); logout(); return; }
   if(e.target.closest("#llama")){ burst(innerWidth/2,innerHeight/3,["🦙"],40,true); return; }
   const ch=e.target.closest("[data-opt]"); if(ch){ state.sel[ch.dataset.stop]=ch.dataset.opt; render(); return; }

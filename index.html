@@ -362,7 +362,7 @@ function renderStops(){ const act=FILTERS.filter(f=>state.f[f[0]]);
     <p class="hid">Tiempos en micro, del cronograma del grupo. De Libertador a San Francisco se sube por ripio (RP 83).</p></div>`;
   $("#stops").innerHTML = STOPS.map(s=>{ const n=nOf(s), cur=chosen(s); const all=OPT[s.id]; const list=all.filter(o=>o===cur||act.every(f=>f[2](o,s))); const hidden=all.length-list.length;
     const P=mine(), vt=vtop(s);
-    const card=(o,ci)=>{ const total=tot(s,o); const vc=vcount(s,o), myv=state.myv[s.id]===o.key; const sel=o===cur, T=tot(s,o), p=pp(s,o), cp=pp(s,cur); let delta=""; const nofit=T==null&&o.total!=null;
+    const card=(o,ci)=>{ const total=tot(s,o); const vc=vcount(s,o), myv=myVote(s.id)===o.key; const sel=o===cur, T=tot(s,o), p=pp(s,o), cp=pp(s,cur); let delta=""; const nofit=T==null&&o.total!=null;
       if(!sel&&p!=null&&cp!=null){ const d=p-cp; delta=Math.abs(d)<state.usd/2?`<span class="delta same">igual que la elegida</span>`:`<span class="delta ${d>0?"up":"down"}">${d>0?"+":"−"}${usd(Math.abs(d))} p/p vs. la elegida</span>`; }
       const pics=o.img.length? o.img.map(i=>`<img src="img/${i}.jpg" alt="Foto de ${esc(o.name)}" loading="lazy">`).join("") : `<div class="nopic">Sin foto</div>`;
       const shape=o.tog?(o.hostel?"Hostel":"Todos juntos"):(o.src==="Airbnb"?o.rooms+" lugares separados":o.rooms+(o.sub.includes("deptos")?" deptos":" habitaciones"));
@@ -372,16 +372,16 @@ function renderStops(){ const act=FILTERS.filter(f=>state.f[f[0]]);
           <h4>${esc(o.name)}</h4><div class="where">${esc(o.sub)}</div>
           <div class="price">${nofit?`<b>No entran ${n}</b>`:p==null?`<b>Sin precio</b>`:`<b>${fmt(p/s.nights)}</b><span>p/p por noche · ${usd(p)} la estadía</span>`}</div>
           ${delta}
-          <div class="chips">${o.rating?`<span class="chip star">★ ${esc(o.rating)}</span>`:`<span class="chip alert">Sin reseñas</span>`}${P&&T!=null&&fits(P,o,s)?`<span class="chip mine">Va con lo que pediste</span>`:""}${vc?`<span class="chip votes">${vc} ${vc===1?"voto":"votos"}</span>`:""}<span class="chip ${o.tog&&!o.hostel?"star":""}">${shape}</span>${est}</div>
+          <div class="chips">${o.rating?`<span class="chip star">★ ${esc(o.rating)}</span>`:`<span class="chip alert">Sin reseñas</span>`}${P&&T!=null&&fits(P,o,s)?`<span class="chip mine">Va con lo que pediste</span>`:""}${vc?`<span class="chip votes" title="${esc(voters(s,o).map(nameOf).join(", "))}">${vc} ${vc===1?"voto":"votos"}: ${esc(voters(s,o).map(nameOf).join(", "))}</span>`:""}<span class="chip ${o.tog&&!o.hostel?"star":""}">${shape}</span>${est}</div>
           <div class="pcbox pro"><h5>A favor</h5><ul>${o.pros.slice(0,3).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>
           <div class="pcbox con"><h5>En contra</h5><ul>${o.cons.length?o.cons.slice(0,3).map(x=>`<li>${esc(x)}</li>`).join(""):"<li>Nada grave a la vista</li>"}</ul></div>
           ${o.pros.length>3||o.cons.length>3||o.meta.length?`<details class="more"><summary>Más detalle</summary><ul>${[...o.pros.slice(3).map(x=>"+ "+x),...o.cons.slice(3).map(x=>"– "+x),...o.meta,o.tax,total!=null?fmt(total)+" en total":""].filter(Boolean).map(x=>`<li>${esc(x)}</li>`).join("")}</ul></details>`:""}
           <div class="foot"><div class="links">${o.links.map(l=>`<a href="${l[1]}" target="_blank" rel="noopener">${esc(l[0])} ↗</a>`).join("")}</div>
-          <div style="display:flex;gap:6px">${VOTE_URL&&T!=null&&goes(s)?`<button class="choose vote ${myv?"on":""}" type="button" data-vstop="${s.id}" data-vopt="${o.key}" aria-pressed="${myv}">${myv?"Tu voto ✓":"Voto esta 🔥"}</button>`:""}${T==null?"":`<button class="choose" type="button" data-stop="${s.id}" data-opt="${o.key}" ${sel?'aria-pressed="true"':""}>${sel?"Elegida":"Ver costo"}</button>`}</div></div>
+          <div style="display:flex;gap:6px">${VOTE_URL&&T!=null&&goes(s)?`<button class="choose vote ${myv?"on":""}" type="button" data-vstop="${s.id}" data-vopt="${o.key}" aria-pressed="${myv}">${myv?"Tu voto ✓":(state.me?"Voto esta 🔥":"Votar")}</button>`:""}${T==null?"":`<button class="choose" type="button" data-stop="${s.id}" data-opt="${o.key}" ${sel?'aria-pressed="true"':""}>${sel?"Elegida":"Ver costo"}</button>`}</div></div>
         </div></article>`; };
     const body = s.id==="yungas" ? YMAP+BASES.map(b=>{ const L=list.filter(o=>o.base===b[0]); return L.length?`<div class="base"><h4>${b[1]}</h4><p>${b[2]}</p></div><div class="cards">${L.map(card).join("")}</div>`:""; }).join("") : `<div class="cards">${list.map(card).join("")}</div>`;
     const away=!goes(s);
-    return `<section class="stop ${away?"away":""}" id="s-${s.id}"><div class="stophead"><h3>${s.name}</h3><span class="when">${s.when} · ${s.nights} ${s.nights>1?"noches":"noche"}</span><span class="tag ${s.week1?"w1":""}">${n} pers.</span>${(()=>{ const v=LV&&LV[s.id]?Object.values(LV[s.id]).reduce((a,b)=>a+b,0):0; return v?`<span class="when">${v} ${v===1?"voto":"votos"}${v>n?" ⚠️ más votos que personas":""}</span>`:""; })()}</div>
+    return `<section class="stop ${away?"away":""}" id="s-${s.id}"><div class="stophead"><h3>${s.name}</h3><span class="when">${s.when} · ${s.nights} ${s.nights>1?"noches":"noche"}</span><span class="tag ${s.week1?"w1":""}">${n} pers.</span>${(()=>{ const v=LV&&LV[s.id]?Object.values(LV[s.id]).reduce((a,b)=>a+b.length,0):0; return v?`<span class="when">${v} ${v===1?"voto":"votos"}</span>`:""; })()}</div>
       <p class="stopnote">${away?"No estás en esta parada. ":""}${esc(s.note)}</p>${body}${hidden?`<p class="hid">${hidden} ${hidden>1?"opciones ocultas":"opción oculta"} por los filtros.</p>`:""}</section>`; }).join(""); }
 function renderMoves(){ $("#moves").innerHTML = MOVES.map(m=>{ if(m.g) return `<div class="grouphead">${m.g}</div>`;
     const on=state.moves[m.id]; const who=m.who===1?`Solo los ${state.n1} de la primera semana`:m.who===2?"Solo los que se suman el 23/1":""; const alts=moveAlts(m);
@@ -435,16 +435,20 @@ function applyVotes(){ if(!VOTES) return; const P=prefs(groupWin); state.f={...P
   render(); $("#vt-msg").textContent="Listo: filtros y elegidas ajustados a lo más votado en la encuesta."; }
 // --- votación de alojamientos (anónima) ---
 let LV=null;
-async function loadLV(){ if(!SHEET_ID||!VOTE_URL) return; try{ const R=csv(await (await fetch(GV("Votos"))).text()); if(!R[0]||R[0][1]!=="voter") return; const last={}; R.slice(1).forEach(r=>{ if(r[1]&&r[2]) last[r[1]+"|"+r[2]]=String(r[3]||"").replace(/^k_/,""); });
-    LV={}; Object.entries(last).forEach(([k,opt])=>{ const st=k.split("|")[1]; if(!opt) return; (LV[st]=LV[st]||{})[opt]=(LV[st][opt]||0)+1; }); render(); }catch(e){} }
-const vcount=(s,o)=>LV&&LV[s.id]&&LV[s.id][o.key]||0;
+const slug=n=>"n_"+String(n||"").trim().toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g,"").replace(/[^a-z0-9]+/g,"_").slice(0,60);
+const nameOf=v=>{ const n=VOTES&&VOTES.names.find(n=>slug(n)===v); return n||v.replace(/^n_/,""); };
+async function loadLV(){ if(!SHEET_ID||!VOTE_URL) return; try{ const R=csv(await (await fetch(GV("Votos"))).text()); if(!R[0]||R[0][1]!=="voter") return; const last={}; R.slice(1).forEach(r=>{ if(r[1]&&r[2]&&/^n_/.test(r[1])) last[r[1]+"|"+r[2]]=String(r[3]||"").replace(/^k_/,""); });
+    LV={}; Object.entries(last).forEach(([k,opt])=>{ const [v,st]=k.split("|"); if(!opt) return; LV[st]=LV[st]||{}; (LV[st][opt]=LV[st][opt]||[]).push(v); }); render(); }catch(e){} }
+const voters=(s,o)=>LV&&LV[s.id]&&LV[s.id][o.key]||[];
+const vcount=(s,o)=>voters(s,o).length;
 const vtop=s=>{ const L=OPT[s.id].filter(o=>vcount(s,o)>0); return L.length?L.reduce((a,b)=>vcount(s,b)>vcount(s,a)?b:a):null; };
-function castVote(stop,key){ if(!state.vid) state.vid="v"+Math.random().toString(36).slice(2)+Date.now().toString(36); const prev=state.myv[stop]; const nk=prev===key?"":key; state.myv[stop]=nk;
-  LV=LV||{}; LV[stop]=LV[stop]||{}; if(prev) LV[stop][prev]=Math.max(0,(LV[stop][prev]||0)-1); if(nk) LV[stop][nk]=(LV[stop][nk]||0)+1; render();
-  fetch(VOTE_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({voter:state.vid,stop,opt:nk?"k_"+nk:""})}).catch(()=>{}); }
+const myVote=stop=>{ if(!state.me||!LV||!LV[stop]) return ""; const me=slug(state.me); const k=Object.keys(LV[stop]).find(k=>LV[stop][k].includes(me)); return k||""; };
+function castVote(stop,key){ if(!state.me) return false; const me=slug(state.me); const prev=myVote(stop); const nk=prev===key?"":key;
+  LV=LV||{}; LV[stop]=LV[stop]||{}; if(prev) LV[stop][prev]=LV[stop][prev].filter(v=>v!==me); if(nk) (LV[stop][nk]=LV[stop][nk]||[]).push(me); render();
+  fetch(VOTE_URL,{method:"POST",mode:"no-cors",headers:{"Content-Type":"text/plain"},body:JSON.stringify({voter:me,stop,opt:nk?"k_"+nk:""})}).catch(()=>{}); return !!nk; }
 function render(){ fix(); renderTiles(); renderRoute(); renderFilters(); renderStops(); renderMoves(); renderVotes(); $("#summary").textContent=summaryText(); save(); }
 document.addEventListener("click",e=>{
-  const vb=e.target.closest("[data-vopt]"); if(vb){ const on=state.myv[vb.dataset.vstop]!==vb.dataset.vopt; castVote(vb.dataset.vstop,vb.dataset.vopt); if(on) burst(e.clientX,e.clientY,["🔥","🎉","🦙","🌵","✨"],14); return; }
+  const vb=e.target.closest("[data-vopt]"); if(vb){ if(!state.me){ const box=$("#votos"); if(box.scrollIntoView) box.scrollIntoView({block:"center"}); $("#vt-msg").textContent=VOTES&&VOTES.names.length?"Para votar, elegí quién sos acá 👇":"Para votar, primero respondé la encuesta con tu apodo."; return; } const on=castVote(vb.dataset.vstop,vb.dataset.vopt); if(on) burst(e.clientX,e.clientY,["🔥","🎉","🦙","🌵","✨"],14); return; }
   if(e.target.closest("#llama")){ burst(innerWidth/2,innerHeight/3,["🦙"],40,true); return; }
   const ch=e.target.closest("[data-opt]"); if(ch){ state.sel[ch.dataset.stop]=ch.dataset.opt; render(); return; }
   const go=e.target.closest("[data-go]"); if(go){ const el=document.getElementById("s-"+go.dataset.go); if(el) el.scrollIntoView({block:"start"}); return; }

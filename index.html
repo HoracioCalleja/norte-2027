@@ -539,7 +539,7 @@ function castVote(stop,key){ if(!state.me) return false; const me=slug(state.me)
 // --- ficha de detalle ---
 let DET=null;
 const gurl=x=>x[0]==="b"?"https://cf.bstatic.com/xdata/images/hotel/max500/"+x.slice(2):"https://a0.muscache.com/im/pictures/"+x.slice(2)+"?im_w=720";
-function gsync(){ const tr=$("#det .gtrack"); if(!tr||!tr.children) return; const n=tr.children.length, i=Math.round(tr.scrollLeft/(tr.clientWidth||1)); const c=$("#det .gcount"); if(c) c.textContent=`${Math.min(i+1,n)} / ${n}`; const g=$("#det .gtag"); if(g&&DET){ const t=!DET.nr?(DET.bk?"Fotos del lugar":""):(i<DET.nr?"Lo que alquilamos nosotros":"Espacios comunes del lugar"); g.textContent=t; g.hidden=!t; } const p=$("#det .gnav.prev"), x=$("#det .gnav.next"); if(p) p.disabled=i<=0; if(x) x.disabled=i>=n-1; }
+function gsync(){ const tr=$("#det .gtrack"); if(!tr||!tr.children) return; const n=tr.children.length, i=Math.round(tr.scrollLeft/(tr.clientWidth||1)); const c=$("#det .gcount"); if(c) c.textContent=`${Math.min(i+1,n)} / ${n}`; const g=$("#det .gtag"); if(g&&DET){ const t=!DET.nr?(DET.bk?"Fotos del lugar":""):(i<DET.nr?"Lo que alquilamos nosotros":"Otras fotos del lugar"); g.textContent=t; g.hidden=!t; } const p=$("#det .gnav.prev"), x=$("#det .gnav.next"); if(p) p.disabled=i<=0; if(x) x.disabled=i>=n-1; }
 function renderDet(keep){ const d=$("#det"); if(!DET||!d) return; const s=STOPS.find(x=>x.id===DET.s), o=s&&OPT[s.id].find(x=>x.key===DET.k); if(!o){ closeDet(); return; }
   const n=nOf(s), T=tot(s,o), p=pp(s,o), cur=chosen(s), sel=calc()&&o===cur, nofit=T==null&&o.total!=null, vc=vcount(s,o), myv=myVote(s.id)===o.key, vt=vtop(s), P=mine();
   const remote=(GAL[o.key]||[]).map(gurl), local=o.img.map(i=>`img/${i}.jpg`); const pics=remote.length?remote:local; const nr=remote.length?(GALR[o.key]||0):0; DET.nr=nr; DET.np=pics.length; DET.bk=o.src==="Booking";
@@ -559,7 +559,7 @@ function renderDet(keep){ const d=$("#det"); if(!DET||!d) return; const s=STOPS.
       <div class="dgrid"><div class="pcbox pro"><h5>A favor</h5><ul>${o.pros.length?o.pros.map(x=>`<li>${esc(x)}</li>`).join(""):"<li>Sin datos todavía</li>"}</ul></div>
       <div class="pcbox con"><h5>En contra</h5><ul>${o.cons.length?o.cons.map(x=>`<li>${esc(x)}</li>`).join(""):"<li>Nada grave a la vista</li>"}</ul></div></div>
       ${meta.length?`<p class="dsec">Datos del lugar</p><ul class="dmeta">${meta.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}
-      <p class="vnote">Fotos y datos tomados del anuncio el 24/11/2026. En hoteles y hostels se muestran las fotos de las habitaciones que cotizamos para el grupo y después los espacios comunes; no las de otras habitaciones. Precio y disponibilidad pueden cambiar: confirmalos en la fuente.</p>
+      <p class="vnote">Fotos y datos tomados del anuncio el 24/11/2026. En hoteles y hostels se muestran las fotos de las habitaciones que cotizamos para el grupo y después fotos generales del lugar; no las de otras habitaciones. Precio y disponibilidad pueden cambiar: confirmalos en la fuente.</p>
     </div></div>
     <div class="dfoot"><div class="dsrc">${src}</div>${act}</div></div>`;
   const tr=$("#det .gtrack"); if(tr){ if(tr.addEventListener) tr.addEventListener("scroll",gsync,{passive:true}); if(sl){ tr.style.scrollBehavior="auto"; tr.scrollLeft=sl; tr.style.scrollBehavior=""; } } const ds=$("#det .dscroll"); if(ds&&st) ds.scrollTop=st; gsync(); }
@@ -607,7 +607,7 @@ function burst(x,y,em,n,rain){ if(calm) return; for(let i=0;i<n;i++){ const s=do
 
 render();
 loadVotes(); loadLV(); initLogin();
-fetch("gal.json").then(r=>r.ok?r.json():null).then(g=>{ if(g){ GAL=g; if(DET) renderDet(true); } }).catch(()=>{});
+fetch("gal.json?v=3").then(r=>r.ok?r.json():null).then(g=>{ if(g){ GAL=g; if(DET) renderDet(true); } }).catch(()=>{});
 
 </script>
 </body>

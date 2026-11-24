@@ -127,6 +127,7 @@ a{color:var(--accent)}
 .moves .row{display:grid;grid-template-columns:26px 1fr auto;gap:10px;align-items:center;padding:9px 14px;border-top:1px solid var(--line)}
 .moves .row:first-child{border-top:0}
 .moves .row.off{color:var(--muted)}
+.moves .row small.src{margin-top:3px}.moves .row small.src a{color:var(--accent)}
 .moves .row small{display:block;color:var(--muted);font-size:12px}
 .moves .amt{font-variant-numeric:tabular-nums;font-weight:600;text-align:right;white-space:nowrap}
 .moves select{max-width:100%;padding:5px 7px;border:1px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);font-size:13px;margin-top:3px}
@@ -272,9 +273,9 @@ body.boot .card{animation:rise .5s both;animation-delay:calc(var(--i)*60ms)}
   <ul class="notes">
     <li>Alojamiento buscado el 24/11/2026 en Airbnb y Booking, con estas fechas y para 5 u 11 adultos. Para 6 y para 10 se usa el precio real cuando Airbnb lo dio, y si no un estimado, marcado en la tarjeta. Los precios cambian todos los días.</li>
     <li>Booking: la distancia es la que da Booking al centro del pueblo, y el precio incluye impuestos y cargos. Airbnb: la distancia está medida desde el punto del mapa del anuncio hasta la plaza principal; Airbnb corre ese punto unas cuadras, así que es aproximada.</li>
-    <li>Vuelos buscados el 24/11/2026 en Google Flights, por tramo y para 1 adulto, con impuestos. Es la tarifa más baja de cada aerolínea: incluye solo mochila; carry-on y valija se pagan aparte. Flybondi no aparece en Google Flights y su sitio estaba caído al buscar. Los traslados terrestres son los del 10/11/2026.</li>
+    <li>Vuelos buscados el 24/11/2026 en Google Flights, por tramo y para 1 adulto, con impuestos. Es la tarifa más baja de cada aerolínea: incluye solo mochila; carry-on y valija se pagan aparte. Flybondi no aparece en Google Flights y su sitio estaba caído al buscar. Traslados terrestres rebuscados el 24/11/2026: cada uno muestra su fuente. Los que dicen "a confirmar allá" no tienen precio publicado y suman $ 0.</li>
     <li>Dólar MEP a $ 1.700 (cierre del 23/11/2026: $ 1.701). Se puede cambiar arriba.</li>
-    <li>El costo no incluye comida. Falta precio del micro Salta → Libertador y de la subida a San Francisco: no están sumados.</li>
+    <li>El costo no incluye comida. Falta precio del micro Salta → Libertador, de la subida a San Francisco y de la entrada al Hornocal: no están sumados.</li>
     <li>Tu elección se guarda en este navegador. Para compartirla, copiá el resumen.</li>
   </ul>
 </div>
@@ -294,31 +295,32 @@ const veh=(n,seats)=>Math.ceil(n/seats);
 
 const MOVES = [
  {g:"Llegar y volver: cada uno elige (no entra en el gasto común)"},
- {id:"f1", who:1, name:"Buenos Aires → Salta", note:"Google Flights, 24/11. Tarifa más baja de cada aerolínea: solo mochila", link:GF("Buenos%20Aires","Salta","2027-01-16"),
+ {id:"f1", who:1, name:"Buenos Aires → Salta", note:"Tarifa más baja de cada aerolínea: solo mochila", link:GF("Buenos%20Aires","Salta","2027-01-16"),
   alts:n=>[["16/1 · JetSMART, AEP 05:40, 06:30 o 19:15, directo",158528],["16/1 · Aerolíneas, AEP 05:05, 09:20, 12:40, 17:15 o 18:45, directo",227254],["15/1 (un día antes) · JetSMART, EZE 05:00 o 07:00, directo",95494],["15/1 (un día antes) · Aerolíneas, AEP 05:00 o 06:00, directo",126320],["No lo cuento acá (auto, micro, tren, millas)",0]]},
- {id:"f2", who:2, name:"Buenos Aires → Jujuy, 23/1", note:"Google Flights, 24/11. Tarifa más baja de cada aerolínea: solo mochila", link:GF("Buenos%20Aires","Jujuy","2027-01-23"),
-  alts:n=>[["Aerolíneas a Jujuy, AEP 10:10, directo",223346],["JetSMART a Jujuy, AEP 13:10, directo",299714],["JetSMART a Salta, AEP 05:40 + micro Salta → Tilcara ($ 19.100, 3 h 35)",119928],["No lo cuento acá (auto, micro, tren, millas)",0]]},
- {id:"f3", who:0, name:"Vuelta a Buenos Aires, 31/1", note:"Google Flights, 24/11. Tarifa más baja de cada aerolínea: solo mochila", link:GF("Jujuy","Buenos%20Aires","2027-01-31"),
-  alts:n=>[["JetSMART desde Jujuy, 15:36 → AEP, directo",122479],["Aerolíneas desde Jujuy, 09:35 → EZE, directo",223346],["JetSMART desde Salta, 14:14 o 21:44 → EZE (hay que bajar a Salta)",114504],["Micro Tilcara → Retiro, 25 h 39 (Central de Pasajes, desde)",110000],["No lo cuento acá (auto, micro, tren, millas)",0]]},
+ {id:"f2", who:2, name:"Buenos Aires → Jujuy, 23/1", note:"Tarifa más baja de cada aerolínea: solo mochila", link:GF("Buenos%20Aires","Jujuy","2027-01-23"),
+  alts:n=>[["Aerolíneas a Jujuy, AEP 10:10, directo",223346],["JetSMART a Jujuy, AEP 13:10, directo",299714],["JetSMART a Salta, AEP 05:40 + micro Salta → Tilcara ($ 19.100, 3 h 35)",119928,"Google Flights (vuelo) y Central de Pasajes (micro)","https://www.centraldepasajes.com.ar/cdp/pasajes-micro/salta/tilcara"],["No lo cuento acá (auto, micro, tren, millas)",0]]},
+ {id:"f3", who:0, name:"Vuelta a Buenos Aires, 31/1", note:"Tarifa más baja de cada aerolínea: solo mochila", link:GF("Jujuy","Buenos%20Aires","2027-01-31"),
+  alts:n=>[["JetSMART desde Jujuy, 15:36 → AEP, directo",122479],["Aerolíneas desde Jujuy, 09:35 → EZE, directo",223346],["JetSMART desde Salta, 14:14 o 21:44 → EZE (hay que bajar a Salta)",114504],["Micro Tilcara → Retiro, 25 h 39 (precio desde)",110000,"Central de Pasajes","https://www.centraldepasajes.com.ar/CDP/pasajes-micro/tilcara/retiro-buenos-aires"],["No lo cuento acá (auto, micro, tren, millas)",0]]},
  {g:"Primera semana"},
- {id:"t1", who:1, name:"Salta ↔ Cafayate", alts:n=>[["Micro Flecha Bus, ida y vuelta",42800],["Auto privado a la ida (Daytrip, precio desde) + micro de vuelta",126590]]},
- {id:"t2", who:1, name:"Libertador → Jujuy", note:"Balut o Panamericano", ars:12800, link:TJ},
+ {id:"t1", who:1, name:"Salta ↔ Cafayate", note:"Micro, 4 h por tramo",
+  alts:n=>[["Ida desde $ 28.600 + vuelta desde $ 31.500",60100,"Central de Pasajes","https://www.centraldepasajes.com.ar/cdp/pasajes-micro/salta/cafayate"]]},
+ {id:"t2", who:1, name:"Libertador → Jujuy", note:"Balut o Panamericano", ars:12300, src:["Todo Jujuy, tarifa de agosto 2026 (puede haber subido)","https://www.todojujuy.com/aumento-el-transporte-media-distancia-jujuy-los-nuevos-precios-n294028"]},
  {g:"Segunda semana"},
- {id:"t3", who:2, name:"Aeropuerto de Jujuy → terminal", note:"Colectivo", ars:5245, link:TJ},
- {id:"t4", who:0, name:"Jujuy → Tilcara", note:"Sale cada 30–45 min", ars:10700, link:TJ},
- {id:"t5", who:0, name:"Salinas Grandes desde Purmamarca", extra:4000, extraNote:"+ $4.000 de entrada",
-  alts:n=>[[`${veh(n,4)} camionetas 4x4 privadas para ${n} (Hornocal Travel)`,veh(n,4)*290000/n],["Excursión regular (Civitatis)",108330],[`Combi privada con guía desde Jujuy, día completo (precio desde)`,926554/n]]},
- {id:"t6", who:0, name:"Hornocal desde Humahuaca", extra:2000, extraNote:"+ $2.000 de entrada",
-  alts:n=>[["4x4 compartida en la terminal",25000],[`${veh(n,4)} camionetas privadas para ${n}`,veh(n,4)*100000/n],["Tour desde Tilcara (Runatour)",75000]]},
- {id:"t7", who:0, name:"Humahuaca ↔ Iruya", note:"Tope: tarifa desde Jujuy. Comprar el día anterior.", ars:55600, link:TJ},
- {id:"t8", who:0, name:"Humahuaca → Jujuy y al aeropuerto", note:"Micro + colectivo", ars:21045, link:TJ}
+ {id:"t3", who:2, name:"Aeropuerto de Jujuy → terminal", note:"Colectivo", ars:5245, src:["Sin fuente: precio de referencia, confirmar",""]},
+ {id:"t4", who:0, name:"Jujuy → Tilcara", note:"Sale seguido desde la terminal", ars:10700, src:["Todo Jujuy, tarifa desde el 1/10/2026",TJ]},
+ {id:"t5", who:0, name:"Salinas Grandes", extra:4000, extraNote:"+ $ 4.000 de entrada",
+  alts:n=>[["Excursión desde Purmamarca, 5 h (US$ 74)",74*state.usd,"Civitatis","https://www.civitatis.com/ar/purmamarca/excursion-salinas-grandes-trekking-colorados/"],[`Excursión privada con guía desde Jujuy, 13 h ($ 926.554 el grupo)`,926554/n,"Atrápalo (precio desde; confirmar cuántos entran)","https://www.atrapalo.com.ar/actividades/excursion-privada-desde-jujuy_e4942432/"],["Combi o remis compartido en la plaza de Purmamarca: precio a confirmar allá",0,"Cronograma del grupo: sin precio publicado",""]]},
+ {id:"t6", who:0, name:"Hornocal", note:"La entrada al mirador se paga aparte, allá",
+  alts:n=>[["Excursión desde Tilcara, 5 h, con 4x4 (US$ 117)",117*state.usd,"Civitatis","https://www.civitatis.com/ar/tilcara/excursion-humahuaca-hornocal/"],["4x4 compartida en la terminal de Humahuaca: precio a confirmar allá",0,"Cronograma del grupo: sin precio publicado",""]]},
+ {id:"t7", who:0, name:"Humahuaca ↔ Iruya", note:"Ida y vuelta. Tope: 2 × la tarifa Jujuy–Iruya ($ 27.800). Comprar el día anterior.", ars:55600, src:["Todo Jujuy, tarifa desde el 1/10/2026",TJ]},
+ {id:"t8", who:0, name:"Humahuaca → Jujuy y al aeropuerto", note:"Micro ($ 15.800) + colectivo al aeropuerto ($ 5.245, sin fuente)", ars:21045, src:["Todo Jujuy, tarifa desde el 1/10/2026",TJ]}
 ];
 let state = {sel:{}, moves:{}, alt:{}, f:{}, me:"", vid:"", myv:{}, n1:5, n2:11, usd:1700, bud:1000};
 const nOf=s=>s.week1?state.n1:state.n2;
 const szOf=s=>{ const n=nOf(s); return s.week1?(n<=5?5:6):(n<=10?10:11); };
 const tot=(s,o)=>{ const v=o.t[szOf(s)]; return v==null?null:v; };
 MOVES.forEach(m=>{ if(m.id){ state.moves[m.id]=true; state.alt[m.id]=0; } });
-const KEY="norte2027h";
+const KEY="norte2027i";
 try{ const s=JSON.parse(localStorage.getItem(KEY)||"null"); if(s&&s.sel){ state={...state,...s, moves:{...state.moves,...s.moves}, alt:{...state.alt,...s.alt}, f:{}}; } }catch(e){}
 const save=()=>{ try{ localStorage.setItem(KEY,JSON.stringify(state)); }catch(e){} };
 const $=s=>document.querySelector(s);
@@ -387,9 +389,9 @@ function renderStops(){ const act=FILTERS.filter(f=>state.f[f[0]]);
 function renderMoves(){ $("#moves").innerHTML = MOVES.map(m=>{ if(m.g) return `<div class="grouphead">${m.g}</div>`;
     const on=state.moves[m.id]; const who=m.who===1?`Solo los ${state.n1} de la primera semana`:m.who===2?"Solo los que se suman el 23/1":""; const alts=moveAlts(m);
     const alt=alts?`<select id="alt-${m.id}" data-alt="${m.id}" aria-label="Opción para ${esc(m.name)}">${alts.map((a,i)=>`<option value="${i}" ${i==(state.alt[m.id]||0)?"selected":""}>${esc(a[0])} · ${fmt(a[1])} p/p</option>`).join("")}</select>`:"";
-    const note=[m.note,m.extraNote,who].filter(Boolean).join(" · ");
+    const note=[m.note,m.extraNote,who].filter(Boolean).join(" · "); const sa=alts?alts[Math.min(state.alt[m.id]||0,alts.length-1)]:null; const S=sa&&sa[2]?[sa[2],sa[3]]:(m.src||(m.link?["Google Flights, 24/11/2026",m.link]:null)); const srcH=S?`<small class="src">${S[1]?"Fuente: ":""}${S[1]?`<a href="${S[1]}" target="_blank" rel="noopener">${esc(S[0])} ↗</a>`:esc(S[0])}</small>`:"";
     return `<div class="row ${on?"":"off"}"><input type="checkbox" id="mv-${m.id}" data-move="${m.id}" ${on?"checked":""} aria-label="Incluir ${esc(m.name)}">
-      <div><label for="mv-${m.id}">${esc(m.name)}</label>${m.link?` <a href="${m.link}" target="_blank" rel="noopener" style="font-size:12.5px">ver ↗</a>`:""}${note?`<small>${esc(note)}</small>`:""}${alt}</div>
+      <div><label for="mv-${m.id}">${esc(m.name)}</label>${note?`<small>${esc(note)}</small>`:""}${alt}${srcH}</div>
       <div class="amt">${on?fmt(moveCost(m)):"—"}</div></div>`; }).join(""); }
 function summaryText(){ const t=totals(); const sum=k=>t[k].fly+t[k].stay+t[k].move;
   const lines=[`NORTE 2027 · ${state.n1} la primera semana, ${state.n2} la segunda`,""];
